@@ -3,6 +3,7 @@ import { Blocks } from "../blocks";
 import { StonePosition } from "../stonePosition";
 import { Constants } from "../constants";
 import { RotationDirections } from "../rotationDirections";
+import { Board } from "../board";
 
 export class Z extends Stone {
 
@@ -10,16 +11,16 @@ export class Z extends Stone {
         super([new StonePosition(3, 0), new StonePosition(4, 0, true), new StonePosition(4, 1), new StonePosition(5, 1)], Blocks.z);
     }
 
-    public rotateCCW(): void {
+    public tryRotateCCW(board: Board): void {
         if (this.lastRotationDirection === RotationDirections.undefined || this.lastRotationDirection === RotationDirections.cw) {
-            super.rotateCCW();
+            super.tryRotateCCW(board);
         } else if (this.lastRotationDirection === RotationDirections.ccw) {
-            super.rotateCW();
+            super.tryRotateCW(board);
         }
     }
 
-    public rotateCW(): void {
-        this.rotateCCW();
+    public tryRotateCW(board: Board): void {
+        this.tryRotateCCW(board);
     }
 
     public drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number): void {

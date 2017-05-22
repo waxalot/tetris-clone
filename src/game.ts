@@ -3,6 +3,7 @@ import { StonePosition } from "./stonePosition";
 import { Blocks } from "./blocks";
 import { I, J, L, O, S, T, Z } from "./stones";
 import { Constants } from "./constants";
+import { Board } from "./board";
 
 
 export class Game {
@@ -16,7 +17,7 @@ export class Game {
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
 
-    private board: number[][];
+    private board: Board;
     private currentStone: Stone;
 
     private stoneHelpers: Stone[];
@@ -31,6 +32,7 @@ export class Game {
         this.initStonesMap();
 
         this.initBoard();
+        this.initCanvas();
 
         this.createStone();
 
@@ -73,14 +75,14 @@ export class Game {
             case 65: {
                 // Rotate CW
                 if (this.currentStone) {
-                    this.currentStone.rotateCCW();
+                    this.currentStone.tryRotateCCW(this.board);
                 }
                 break;
             }
             case 68: {
                 // Rotate CCW
                 if (this.currentStone) {
-                    this.currentStone.rotateCW();
+                    this.currentStone.tryRotateCW(this.board);
                 }
                 break;
             }
@@ -153,7 +155,7 @@ export class Game {
 
         // Check if the stone can be moved left
         for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].x - 1 < 0 || this.doesPositionCollide(stone.positions[i].x - 1, stone.positions[i].y)) {
+            if (stone.positions[i].x - 1 < 0 || this.board.doesPositionCollide(stone.positions[i].x - 1, stone.positions[i].y)) {
                 return;
             }
         }
@@ -170,7 +172,7 @@ export class Game {
 
         // Check if the stone can be moved right
         for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].x + 1 >= Constants.BOARD_WIDTH || this.doesPositionCollide(stone.positions[i].x + 1, stone.positions[i].y)) {
+            if (stone.positions[i].x + 1 >= Constants.BOARD_WIDTH || this.board.doesPositionCollide(stone.positions[i].x + 1, stone.positions[i].y)) {
                 return;
             }
         }
@@ -187,7 +189,7 @@ export class Game {
 
         // Check if the stone can be moved down
         for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
+            if (stone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.board.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
                 this.freezeStone();
                 return;
             }
@@ -199,15 +201,10 @@ export class Game {
     }
 
     private initBoard() {
-        // Init model
-        this.board = [];
-        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
-            this.board[i] = [];
-            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
-                this.board[i][j] = Blocks.undefined;
-            }
-        }
+        this.board = new Board();
+    }
 
+    private initCanvas() {
         // Init Canvas
         this.canvas.width = Constants.BOARD_WIDTH * Constants.BLOCK_UNIT_SIZE;
         this.canvas.height = Constants.BOARD_HEIGHT * Constants.BLOCK_UNIT_SIZE;
@@ -237,77 +234,15 @@ export class Game {
         this.moveStoneDown(this.currentStone);
     }
 
-    private doesPositionCollide = (x: number, y: number): boolean => {
-        return this.board[x][y] != Blocks.undefined;
-    }
-
     private clear = () => {
         this.ctx.fillStyle = "#DADADA";
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
     private freezeStone = () => {
-        this.freezeCurrentStone();
-        this.checkForFullLines();
+        this.board.freezeStone(this.currentStone);
+        this.board.checkForFullLines();
         this.createStone();
-    }
-
-    private freezeCurrentStone = () => {
-        for (let i = 0; i < this.currentStone.positions.length; i++) {
-            this.board[this.currentStone.positions[i].x][this.currentStone.positions[i].y] = this.currentStone.stoneType;
-        }
-    }
-
-    private checkForFullLines = () => {
-
-        let fullLinesIndices = new Array<number>();
-        for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
-            let isFullLine = true;
-            for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
-                if (this.board[i][j] === Blocks.undefined) {
-                    isFullLine = false;
-                    break;
-                }
-            }
-            if (isFullLine) {
-                fullLinesIndices.push(j);
-            }
-        }
-
-        this.removeLines(fullLinesIndices);
-    }
-
-    private copyLine = (sourceIndex: number, targetIndex: number) => {
-        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
-            this.board[i][targetIndex] = this.board[i][sourceIndex];
-        }
-    }
-
-    private removeLines = (indices: Array<number>) => {
-        if (!indices || indices.length === 0) {
-            return;
-        }
-
-        // Two pointers, to select the source and target lines for copying values.
-        let targetIndex: number;
-        let sourceIndex: number;
-        let offset = 1;
-
-        // Remove lines by overwrite lines which should be removed with valid lines.
-        // Start at the last line which should be deleted and go up from there...
-        for (targetIndex = indices[indices.length - 1]; targetIndex >= 0; targetIndex--) {
-            // Target line should be removed
-            for (sourceIndex = targetIndex - offset; sourceIndex >= 0; sourceIndex--) {
-                if (indices.indexOf(sourceIndex) === -1) {
-                    // A valid source line was found.
-                    this.copyLine(sourceIndex, targetIndex);
-                    break;
-                } else {
-                    offset++;
-                }
-            }
-        }
-
     }
 
     private draw = () => {
@@ -322,7 +257,7 @@ export class Game {
         for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
             for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
 
-                let stoneType: Blocks = this.board[i][j];
+                let stoneType: Blocks = this.board.getStoneTypeAt(i, j);
                 if (stoneType !== Blocks.undefined) {
                     let tempHelperStone = this.stoneHelpers[stoneType];
                     tempHelperStone.drawBlock(this.ctx, i, j);

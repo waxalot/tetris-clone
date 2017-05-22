@@ -3,6 +3,7 @@ import { StonePosition } from "./stonePosition";
 import { RotationDirections } from "./rotationDirections";
 import { Constants } from "./constants";
 import { I, J, L, O, S, T, Z } from "./stones";
+import { Board } from "./board";
 
 export abstract class Stone {
 
@@ -23,7 +24,7 @@ export abstract class Stone {
         this.lastRotationDirection = RotationDirections.undefined;
     }
 
-    public rotateCCW(): void {
+    public tryRotateCCW(board: Board): void {
         if (!this.positions || this.positions.length === 0 || !this.pivotPosition) {
             return;
         }
@@ -47,7 +48,7 @@ export abstract class Stone {
         this.lastRotationDirection = RotationDirections.ccw;
     }
 
-    public rotateCW(): void {
+    public tryRotateCW(board: Board): void {
         if (!this.positions || this.positions.length === 0 || !this.pivotPosition) {
             return;
         }
