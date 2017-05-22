@@ -1,11 +1,14 @@
 import { Constants } from "./constants";
 import { Blocks } from "./blocks";
 import { Stone } from "./stone";
+import { I, J, L, O, S, T, Z } from "./stones";
 
 
 export class Board {
 
     private board: number[][];
+    private fullLineIndices: number[];
+    private stoneHelpers: Stone[];
 
     public constructor() {
         // Init model
@@ -16,6 +19,9 @@ export class Board {
                 this.board[i][j] = Blocks.undefined;
             }
         }
+
+        this.fullLineIndices = new Array<number>();
+        this.initStonesMap();
     }
 
     public getStoneTypeAt(x: number, y: number): Blocks {
@@ -33,7 +39,6 @@ export class Board {
     }
 
     public checkForFullLines = () => {
-        let fullLinesIndices = new Array<number>();
         for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
             let isFullLine = true;
             for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
@@ -43,15 +48,45 @@ export class Board {
                 }
             }
             if (isFullLine) {
-                fullLinesIndices.push(j);
+                this.fullLineIndices.push(j);
             }
         }
 
-        this.removeLines(fullLinesIndices);
+        this.removeLines();
     }
 
-    private removeLines = (indices: Array<number>) => {
-        if (!indices || indices.length === 0) {
+    public draw = (ctx: CanvasRenderingContext2D) => {
+        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
+            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
+
+                let stoneType: Blocks = this.getStoneTypeAt(i, j);
+                if (stoneType !== Blocks.undefined) {
+                    let tempHelperStone = this.stoneHelpers[stoneType];
+                    tempHelperStone.drawBlock(ctx, i, j);
+                }
+            }
+        }
+    }
+
+    private initStonesMap() {
+        this.stoneHelpers = new Array<Stone>();
+        this.stoneHelpers[Blocks.i] = new I();
+        this.stoneHelpers[Blocks.j] = new J();
+        this.stoneHelpers[Blocks.l] = new L();
+        this.stoneHelpers[Blocks.o] = new O();
+        this.stoneHelpers[Blocks.s] = new S();
+        this.stoneHelpers[Blocks.t] = new T();
+        this.stoneHelpers[Blocks.z] = new Z();
+    }
+
+    private drawBlock = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
+    }
+
+    private removeLines = () => {
+        if (!this.fullLineIndices || this.fullLineIndices.length === 0) {
             return;
         }
 
@@ -62,10 +97,10 @@ export class Board {
 
         // Remove lines by overwrite lines which should be removed with valid lines.
         // Start at the last line which should be deleted and go up from there...
-        for (targetIndex = indices[indices.length - 1]; targetIndex >= 0; targetIndex--) {
+        for (targetIndex = this.fullLineIndices[this.fullLineIndices.length - 1]; targetIndex >= 0; targetIndex--) {
             // Target line should be removed
             for (sourceIndex = targetIndex - offset; sourceIndex >= 0; sourceIndex--) {
-                if (indices.indexOf(sourceIndex) === -1) {
+                if (this.fullLineIndices.indexOf(sourceIndex) === -1) {
                     // A valid source line was found.
                     this.copyLine(sourceIndex, targetIndex);
                     break;
@@ -75,6 +110,7 @@ export class Board {
             }
         }
 
+        this.fullLineIndices = new Array<number>();
     }
 
     private copyLine = (sourceIndex: number, targetIndex: number) => {

@@ -20,8 +20,6 @@ export class Game {
     private board: Board;
     private currentStone: Stone;
 
-    private stoneHelpers: Stone[];
-
     public constructor() {
         this.canvas = <HTMLCanvasElement>document.getElementById('board');
         this.ctx = this.canvas.getContext('2d');
@@ -29,25 +27,12 @@ export class Game {
         let gameContainer = document.getElementById('gameContainer');
         gameContainer.addEventListener("keydown", this.handleKeyDown);
 
-        this.initStonesMap();
-
         this.initBoard();
         this.initCanvas();
 
         this.createStone();
 
         this.initGameLoop();
-    }
-
-    private initStonesMap() {
-        this.stoneHelpers = new Array<Stone>();
-        this.stoneHelpers[Blocks.i] = new I();
-        this.stoneHelpers[Blocks.j] = new J();
-        this.stoneHelpers[Blocks.l] = new L();
-        this.stoneHelpers[Blocks.o] = new O();
-        this.stoneHelpers[Blocks.s] = new S();
-        this.stoneHelpers[Blocks.t] = new T();
-        this.stoneHelpers[Blocks.z] = new Z();
     }
 
     private handleKeyDown = (e: KeyboardEvent) => {
@@ -247,29 +232,10 @@ export class Game {
 
     private draw = () => {
         this.clear();
-        this.drawBoard();
+        this.board.draw(this.ctx);
         if (this.currentStone) {
             this.currentStone.draw(this.ctx);
         }
-    }
-
-    private drawBoard = () => {
-        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
-            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
-
-                let stoneType: Blocks = this.board.getStoneTypeAt(i, j);
-                if (stoneType !== Blocks.undefined) {
-                    let tempHelperStone = this.stoneHelpers[stoneType];
-                    tempHelperStone.drawBlock(this.ctx, i, j);
-                }
-            }
-        }
-    }
-
-    private drawBlock = (x: number, y: number) => {
-        this.ctx.beginPath();
-        this.ctx.lineWidth = 2;
-        this.ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
     }
 
 }
