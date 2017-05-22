@@ -2,6 +2,7 @@ import { Stone } from "../stone";
 import { Blocks } from "../blocks";
 import { StonePosition } from "../stonePosition";
 import { RotationDirections } from "../rotationDirections";
+import { Constants } from "../constants";
 
 export class I extends Stone {
 
@@ -23,7 +24,12 @@ export class I extends Stone {
         } else {
             super.rotateCCW();
         }
+    }
 
+    public static drawBlock = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+        ctx.beginPath();
+        ctx.lineWidth = 2;
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
     }
 
 }

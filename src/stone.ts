@@ -1,8 +1,11 @@
 import { Blocks } from "./blocks";
 import { StonePosition } from "./stonePosition";
 import { RotationDirections } from "./rotationDirections";
+import { Constants } from "./constants";
+import { I, J, L, O, S, T, Z } from "./stones";
 
 export class Stone {
+
     public positions: Array<StonePosition>;
     public stoneType: Blocks;
 
@@ -11,12 +14,52 @@ export class Stone {
     private positionsCount: number;
     private pivotPosition: StonePosition;
 
+
     public constructor(positions: Array<StonePosition>, stoneType: Blocks) {
         this.positions = positions;
         this.stoneType = stoneType;
         this.positionsCount = this.positions.length;
         this.pivotPosition = this.getPivotPosition();
         this.lastRotationDirection = RotationDirections.undefined;
+    }
+
+    public static drawBlockByType(ctx: CanvasRenderingContext2D, stoneType: Blocks, x: number, y: number) {
+        switch (stoneType) {
+            case Blocks.i: {
+                I.drawBlock(ctx, x, y);
+                break;
+            }
+            case Blocks.j: {
+                J.drawBlock(ctx, x, y);
+                break;
+            }
+            case Blocks.l: {
+                L.drawBlock(ctx, x, y);
+                break;
+            }
+            case Blocks.o: {
+                O.drawBlock(ctx, x, y);
+                break;
+            }
+            case Blocks.s: {
+                S.drawBlock(ctx, x, y);
+                break;
+            }
+            case Blocks.t: {
+                T.drawBlock(ctx, x, y);
+                break;
+            }
+            case Blocks.z: {
+                Z.drawBlock(ctx, x, y);
+                break;
+            }
+        }
+    }
+
+    public draw = (ctx: CanvasRenderingContext2D) => {
+        this.positions.forEach((position) => {
+            Stone.drawBlockByType(ctx, this.stoneType, position.x, position.y);
+        });
     }
 
     public rotateCCW(): void {

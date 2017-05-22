@@ -2,6 +2,7 @@ import { Stone } from "./stone";
 import { StonePosition } from "./stonePosition";
 import { Blocks } from "./blocks";
 import { I, J, L, O, S, T, Z } from "./stones";
+import { Constants } from "./constants";
 
 
 export class Game {
@@ -11,10 +12,6 @@ export class Game {
     private lastUpdateTime: number;
 
     private gameLoopIntervalId: any;
-
-    private readonly BOARD_WIDTH = 10;
-    private readonly BOARD_HEIGHT = 17;
-    private readonly BOARD_UNIT_SIZE = 30;
 
     private canvas: HTMLCanvasElement;
     private ctx: CanvasRenderingContext2D;
@@ -158,7 +155,7 @@ export class Game {
 
         // Check if the stone can be moved right
         for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].x + 1 >= this.BOARD_WIDTH || this.doesPositionCollide(stone.positions[i].x + 1, stone.positions[i].y)) {
+            if (stone.positions[i].x + 1 >= Constants.BOARD_WIDTH || this.doesPositionCollide(stone.positions[i].x + 1, stone.positions[i].y)) {
                 return;
             }
         }
@@ -175,7 +172,7 @@ export class Game {
 
         // Check if the stone can be moved down
         for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].y + 1 >= this.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
+            if (stone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
                 this.freezeStone();
                 return;
             }
@@ -189,16 +186,16 @@ export class Game {
     private initBoard() {
         // Init model
         this.board = [];
-        for (let i = 0; i < this.BOARD_WIDTH; i++) {
+        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
             this.board[i] = [];
-            for (let j = 0; j < this.BOARD_HEIGHT; j++) {
+            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
                 this.board[i][j] = Blocks.undefined;
             }
         }
 
         // Init Canvas
-        this.canvas.width = this.BOARD_WIDTH * this.BOARD_UNIT_SIZE;
-        this.canvas.height = this.BOARD_HEIGHT * this.BOARD_UNIT_SIZE;
+        this.canvas.width = Constants.BOARD_WIDTH * Constants.BLOCK_UNIT_SIZE;
+        this.canvas.height = Constants.BOARD_HEIGHT * Constants.BLOCK_UNIT_SIZE;
     }
 
     private run = () => {
@@ -232,7 +229,9 @@ export class Game {
     private draw = () => {
         this.clear();
         this.drawBoard();
-        this.drawStone(this.currentStone);
+        if (this.currentStone) {
+            this.currentStone.draw(this.ctx);
+        }
     }
 
     private clear = () => {
@@ -254,9 +253,9 @@ export class Game {
     private checkForFullLines = () => {
 
         let fullLinesIndices = new Array<number>();
-        for (let j = 0; j < this.BOARD_HEIGHT; j++) {
+        for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
             let isFullLine = true;
-            for (let i = 0; i < this.BOARD_WIDTH; i++) {
+            for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
                 if (this.board[i][j] === Blocks.undefined) {
                     isFullLine = false;
                     break;
@@ -271,7 +270,7 @@ export class Game {
     }
 
     private copyLine = (sourceIndex: number, targetIndex: number) => {
-        for (let i = 0; i < this.BOARD_WIDTH; i++) {
+        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
             this.board[i][targetIndex] = this.board[i][sourceIndex];
         }
     }
@@ -304,61 +303,22 @@ export class Game {
     }
 
     private drawBoard = () => {
-        for (let i = 0; i < this.BOARD_WIDTH; i++) {
-            for (let j = 0; j < this.BOARD_HEIGHT; j++) {
-                if (this.board[i][j] !== Blocks.undefined) {
-                    this.drawBlock(i, j, this.board[i][j]);
+        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
+            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
+
+                let stoneType: Blocks = this.board[i][j];
+                if (stoneType !== Blocks.undefined) {
+
+                    Stone.drawBlockByType(this.ctx, stoneType, i, j);
                 }
             }
         }
     }
 
-    private drawStone = (stone: Stone) => {
-        if (!stone) {
-            return;
-        }
-        stone.positions.forEach((position) => {
-            this.drawBlock(position.x, position.y, stone.stoneType);
-        });
-    }
-
-    private drawBlock = (x: number, y: number, blockType: Blocks) => {
+    private drawBlock = (x: number, y: number) => {
         this.ctx.beginPath();
         this.ctx.lineWidth = 2;
-        this.ctx.rect(x * this.BOARD_UNIT_SIZE, y * this.BOARD_UNIT_SIZE, this.BOARD_UNIT_SIZE, this.BOARD_UNIT_SIZE);
-
-        switch (blockType) {
-            case Blocks.i: {
-                this.ctx.strokeStyle = "green";
-                break;
-            }
-            case Blocks.j: {
-                this.ctx.strokeStyle = "red";
-                break;
-            }
-            case Blocks.l: {
-                this.ctx.strokeStyle = "blue";
-                break;
-            }
-            case Blocks.o: {
-                this.ctx.strokeStyle = "yellow";
-                break;
-            }
-            case Blocks.s: {
-                this.ctx.strokeStyle = "black";
-                break;
-            }
-            case Blocks.t: {
-                this.ctx.strokeStyle = "purple";
-                break;
-            }
-            case Blocks.z: {
-                this.ctx.strokeStyle = "lightblue";
-                break;
-            }
-        }
-
-        this.ctx.stroke();
+        this.ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
     }
 
 }

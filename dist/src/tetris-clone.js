@@ -60,14 +60,13 @@
 
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var stones_1 = __webpack_require__(2);
+	var stone_1 = __webpack_require__(2);
+	var stones_1 = __webpack_require__(3);
+	var constants_1 = __webpack_require__(6);
 	var Game = (function () {
 	    function Game() {
 	        var _this = this;
 	        this.levelSpeedMS = 1000; // Smaller is faster is harder
-	        this.BOARD_WIDTH = 10;
-	        this.BOARD_HEIGHT = 17;
-	        this.BOARD_UNIT_SIZE = 30;
 	        this.handleKeyDown = function (e) {
 	            switch (e.keyCode) {
 	                case 37: {
@@ -135,7 +134,9 @@
 	        this.draw = function () {
 	            _this.clear();
 	            _this.drawBoard();
-	            _this.drawStone(_this.currentStone);
+	            if (_this.currentStone) {
+	                _this.currentStone.draw(_this.ctx);
+	            }
 	        };
 	        this.clear = function () {
 	            _this.ctx.clearRect(0, 0, _this.canvas.width, _this.canvas.height);
@@ -152,9 +153,9 @@
 	        };
 	        this.checkForFullLines = function () {
 	            var fullLinesIndices = new Array();
-	            for (var j = 0; j < _this.BOARD_HEIGHT; j++) {
+	            for (var j = 0; j < constants_1.Constants.BOARD_HEIGHT; j++) {
 	                var isFullLine = true;
-	                for (var i = 0; i < _this.BOARD_WIDTH; i++) {
+	                for (var i = 0; i < constants_1.Constants.BOARD_WIDTH; i++) {
 	                    if (_this.board[i][j] === 0 /* undefined */) {
 	                        isFullLine = false;
 	                        break;
@@ -167,7 +168,7 @@
 	            _this.removeLines(fullLinesIndices);
 	        };
 	        this.copyLine = function (sourceIndex, targetIndex) {
-	            for (var i = 0; i < _this.BOARD_WIDTH; i++) {
+	            for (var i = 0; i < constants_1.Constants.BOARD_WIDTH; i++) {
 	                _this.board[i][targetIndex] = _this.board[i][sourceIndex];
 	            }
 	        };
@@ -196,57 +197,19 @@
 	            }
 	        };
 	        this.drawBoard = function () {
-	            for (var i = 0; i < _this.BOARD_WIDTH; i++) {
-	                for (var j = 0; j < _this.BOARD_HEIGHT; j++) {
-	                    if (_this.board[i][j] !== 0 /* undefined */) {
-	                        _this.drawBlock(i, j, _this.board[i][j]);
+	            for (var i = 0; i < constants_1.Constants.BOARD_WIDTH; i++) {
+	                for (var j = 0; j < constants_1.Constants.BOARD_HEIGHT; j++) {
+	                    var stoneType = _this.board[i][j];
+	                    if (stoneType !== 0 /* undefined */) {
+	                        stone_1.Stone.drawBlockByType(_this.ctx, stoneType, i, j);
 	                    }
 	                }
 	            }
 	        };
-	        this.drawStone = function (stone) {
-	            if (!stone) {
-	                return;
-	            }
-	            stone.positions.forEach(function (position) {
-	                _this.drawBlock(position.x, position.y, stone.stoneType);
-	            });
-	        };
-	        this.drawBlock = function (x, y, blockType) {
+	        this.drawBlock = function (x, y) {
 	            _this.ctx.beginPath();
 	            _this.ctx.lineWidth = 2;
-	            _this.ctx.rect(x * _this.BOARD_UNIT_SIZE, y * _this.BOARD_UNIT_SIZE, _this.BOARD_UNIT_SIZE, _this.BOARD_UNIT_SIZE);
-	            switch (blockType) {
-	                case 1 /* i */: {
-	                    _this.ctx.strokeStyle = "green";
-	                    break;
-	                }
-	                case 2 /* j */: {
-	                    _this.ctx.strokeStyle = "red";
-	                    break;
-	                }
-	                case 3 /* l */: {
-	                    _this.ctx.strokeStyle = "blue";
-	                    break;
-	                }
-	                case 4 /* o */: {
-	                    _this.ctx.strokeStyle = "yellow";
-	                    break;
-	                }
-	                case 5 /* s */: {
-	                    _this.ctx.strokeStyle = "black";
-	                    break;
-	                }
-	                case 6 /* t */: {
-	                    _this.ctx.strokeStyle = "purple";
-	                    break;
-	                }
-	                case 7 /* z */: {
-	                    _this.ctx.strokeStyle = "lightblue";
-	                    break;
-	                }
-	            }
-	            _this.ctx.stroke();
+	            _this.ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
 	        };
 	        this.canvas = document.getElementById('board');
 	        this.ctx = this.canvas.getContext('2d');
@@ -323,7 +286,7 @@
 	        }
 	        // Check if the stone can be moved right
 	        for (var i = 0; i < stone.positions.length; i++) {
-	            if (stone.positions[i].x + 1 >= this.BOARD_WIDTH || this.doesPositionCollide(stone.positions[i].x + 1, stone.positions[i].y)) {
+	            if (stone.positions[i].x + 1 >= constants_1.Constants.BOARD_WIDTH || this.doesPositionCollide(stone.positions[i].x + 1, stone.positions[i].y)) {
 	                return;
 	            }
 	        }
@@ -338,7 +301,7 @@
 	        }
 	        // Check if the stone can be moved down
 	        for (var i = 0; i < stone.positions.length; i++) {
-	            if (stone.positions[i].y + 1 >= this.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
+	            if (stone.positions[i].y + 1 >= constants_1.Constants.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
 	                this.freezeStone();
 	                return;
 	            }
@@ -351,15 +314,15 @@
 	    Game.prototype.initBoard = function () {
 	        // Init model
 	        this.board = [];
-	        for (var i = 0; i < this.BOARD_WIDTH; i++) {
+	        for (var i = 0; i < constants_1.Constants.BOARD_WIDTH; i++) {
 	            this.board[i] = [];
-	            for (var j = 0; j < this.BOARD_HEIGHT; j++) {
+	            for (var j = 0; j < constants_1.Constants.BOARD_HEIGHT; j++) {
 	                this.board[i][j] = 0 /* undefined */;
 	            }
 	        }
 	        // Init Canvas
-	        this.canvas.width = this.BOARD_WIDTH * this.BOARD_UNIT_SIZE;
-	        this.canvas.height = this.BOARD_HEIGHT * this.BOARD_UNIT_SIZE;
+	        this.canvas.width = constants_1.Constants.BOARD_WIDTH * constants_1.Constants.BLOCK_UNIT_SIZE;
+	        this.canvas.height = constants_1.Constants.BOARD_HEIGHT * constants_1.Constants.BLOCK_UNIT_SIZE;
 	    };
 	    return Game;
 	}());
@@ -372,80 +335,53 @@
 
 	"use strict";
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var i_1 = __webpack_require__(3);
-	exports.I = i_1.I;
-	var j_1 = __webpack_require__(6);
-	exports.J = j_1.J;
-	var l_1 = __webpack_require__(7);
-	exports.L = l_1.L;
-	var o_1 = __webpack_require__(8);
-	exports.O = o_1.O;
-	var s_1 = __webpack_require__(9);
-	exports.S = s_1.S;
-	var t_1 = __webpack_require__(10);
-	exports.T = t_1.T;
-	var z_1 = __webpack_require__(11);
-	exports.Z = z_1.Z;
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	"use strict";
-	var __extends = (this && this.__extends) || (function () {
-	    var extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() { this.constructor = d; }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	})();
-	Object.defineProperty(exports, "__esModule", { value: true });
-	var stone_1 = __webpack_require__(4);
-	var stonePosition_1 = __webpack_require__(5);
-	var I = (function (_super) {
-	    __extends(I, _super);
-	    function I() {
-	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(6, 0)], 1 /* i */) || this;
-	    }
-	    I.prototype.rotateCCW = function () {
-	        if (this.lastRotationDirection === 0 /* undefined */ || this.lastRotationDirection === 2 /* ccw */) {
-	            _super.prototype.rotateCW.call(this);
-	        }
-	        else {
-	            _super.prototype.rotateCCW.call(this);
-	        }
-	    };
-	    I.prototype.rotateCW = function () {
-	        if (this.lastRotationDirection === 0 /* undefined */ || this.lastRotationDirection === 2 /* ccw */) {
-	            _super.prototype.rotateCW.call(this);
-	        }
-	        else {
-	            _super.prototype.rotateCCW.call(this);
-	        }
-	    };
-	    return I;
-	}(stone_1.Stone));
-	exports.I = I;
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-	"use strict";
-	Object.defineProperty(exports, "__esModule", { value: true });
+	var stones_1 = __webpack_require__(3);
 	var Stone = (function () {
 	    function Stone(positions, stoneType) {
+	        var _this = this;
+	        this.draw = function (ctx) {
+	            _this.positions.forEach(function (position) {
+	                Stone.drawBlockByType(ctx, _this.stoneType, position.x, position.y);
+	            });
+	        };
 	        this.positions = positions;
 	        this.stoneType = stoneType;
 	        this.positionsCount = this.positions.length;
 	        this.pivotPosition = this.getPivotPosition();
 	        this.lastRotationDirection = 0 /* undefined */;
 	    }
+	    Stone.drawBlockByType = function (ctx, stoneType, x, y) {
+	        switch (stoneType) {
+	            case 1 /* i */: {
+	                stones_1.I.drawBlock(ctx, x, y);
+	                break;
+	            }
+	            case 2 /* j */: {
+	                stones_1.J.drawBlock(ctx, x, y);
+	                break;
+	            }
+	            case 3 /* l */: {
+	                stones_1.L.drawBlock(ctx, x, y);
+	                break;
+	            }
+	            case 4 /* o */: {
+	                stones_1.O.drawBlock(ctx, x, y);
+	                break;
+	            }
+	            case 5 /* s */: {
+	                stones_1.S.drawBlock(ctx, x, y);
+	                break;
+	            }
+	            case 6 /* t */: {
+	                stones_1.T.drawBlock(ctx, x, y);
+	                break;
+	            }
+	            case 7 /* z */: {
+	                stones_1.Z.drawBlock(ctx, x, y);
+	                break;
+	            }
+	        }
+	    };
 	    Stone.prototype.rotateCCW = function () {
 	        if (!this.positions || this.positions.length === 0 || !this.pivotPosition) {
 	            return;
@@ -499,6 +435,78 @@
 
 
 /***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var i_1 = __webpack_require__(4);
+	exports.I = i_1.I;
+	var j_1 = __webpack_require__(7);
+	exports.J = j_1.J;
+	var l_1 = __webpack_require__(8);
+	exports.L = l_1.L;
+	var o_1 = __webpack_require__(9);
+	exports.O = o_1.O;
+	var s_1 = __webpack_require__(10);
+	exports.S = s_1.S;
+	var t_1 = __webpack_require__(11);
+	exports.T = t_1.T;
+	var z_1 = __webpack_require__(12);
+	exports.Z = z_1.Z;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var stone_1 = __webpack_require__(2);
+	var stonePosition_1 = __webpack_require__(5);
+	var constants_1 = __webpack_require__(6);
+	var I = (function (_super) {
+	    __extends(I, _super);
+	    function I() {
+	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(6, 0)], 1 /* i */) || this;
+	    }
+	    I.prototype.rotateCCW = function () {
+	        if (this.lastRotationDirection === 0 /* undefined */ || this.lastRotationDirection === 2 /* ccw */) {
+	            _super.prototype.rotateCW.call(this);
+	        }
+	        else {
+	            _super.prototype.rotateCCW.call(this);
+	        }
+	    };
+	    I.prototype.rotateCW = function () {
+	        if (this.lastRotationDirection === 0 /* undefined */ || this.lastRotationDirection === 2 /* ccw */) {
+	            _super.prototype.rotateCW.call(this);
+	        }
+	        else {
+	            _super.prototype.rotateCCW.call(this);
+	        }
+	    };
+	    return I;
+	}(stone_1.Stone));
+	I.drawBlock = function (ctx, x, y) {
+	    ctx.beginPath();
+	    ctx.lineWidth = 2;
+	    ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
+	};
+	exports.I = I;
+
+
+/***/ }),
 /* 5 */
 /***/ (function(module, exports) {
 
@@ -518,30 +526,19 @@
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
 	"use strict";
-	var __extends = (this && this.__extends) || (function () {
-	    var extendStatics = Object.setPrototypeOf ||
-	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
-	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
-	    return function (d, b) {
-	        extendStatics(d, b);
-	        function __() { this.constructor = d; }
-	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
-	    };
-	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var stone_1 = __webpack_require__(4);
-	var stonePosition_1 = __webpack_require__(5);
-	var J = (function (_super) {
-	    __extends(J, _super);
-	    function J() {
-	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(5, 1)], 2 /* j */) || this;
+	var Constants = (function () {
+	    function Constants() {
 	    }
-	    return J;
-	}(stone_1.Stone));
-	exports.J = J;
+	    return Constants;
+	}());
+	Constants.BOARD_WIDTH = 10;
+	Constants.BOARD_HEIGHT = 17;
+	Constants.BLOCK_UNIT_SIZE = 30;
+	exports.Constants = Constants;
 
 
 /***/ }),
@@ -560,16 +557,22 @@
 	    };
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var stone_1 = __webpack_require__(4);
+	var stone_1 = __webpack_require__(2);
 	var stonePosition_1 = __webpack_require__(5);
-	var L = (function (_super) {
-	    __extends(L, _super);
-	    function L() {
-	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(3, 1)], 3 /* l */) || this;
+	var constants_1 = __webpack_require__(6);
+	var J = (function (_super) {
+	    __extends(J, _super);
+	    function J() {
+	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(5, 1)], 2 /* j */) || this;
 	    }
-	    return L;
+	    return J;
 	}(stone_1.Stone));
-	exports.L = L;
+	J.drawBlock = function (ctx, x, y) {
+	    ctx.beginPath();
+	    ctx.lineWidth = 2;
+	    ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
+	};
+	exports.J = J;
 
 
 /***/ }),
@@ -588,16 +591,22 @@
 	    };
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var stone_1 = __webpack_require__(4);
+	var stone_1 = __webpack_require__(2);
 	var stonePosition_1 = __webpack_require__(5);
-	var O = (function (_super) {
-	    __extends(O, _super);
-	    function O() {
-	        return _super.call(this, [new stonePosition_1.StonePosition(4, 0), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(4, 1), new stonePosition_1.StonePosition(5, 1)], 4 /* o */) || this;
+	var constants_1 = __webpack_require__(6);
+	var L = (function (_super) {
+	    __extends(L, _super);
+	    function L() {
+	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(3, 1)], 3 /* l */) || this;
 	    }
-	    return O;
+	    return L;
 	}(stone_1.Stone));
-	exports.O = O;
+	L.drawBlock = function (ctx, x, y) {
+	    ctx.beginPath();
+	    ctx.lineWidth = 2;
+	    ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
+	};
+	exports.L = L;
 
 
 /***/ }),
@@ -616,16 +625,22 @@
 	    };
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var stone_1 = __webpack_require__(4);
+	var stone_1 = __webpack_require__(2);
 	var stonePosition_1 = __webpack_require__(5);
-	var S = (function (_super) {
-	    __extends(S, _super);
-	    function S() {
-	        return _super.call(this, [new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(3, 1), new stonePosition_1.StonePosition(4, 1)], 5 /* s */) || this;
+	var constants_1 = __webpack_require__(6);
+	var O = (function (_super) {
+	    __extends(O, _super);
+	    function O() {
+	        return _super.call(this, [new stonePosition_1.StonePosition(4, 0), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(4, 1), new stonePosition_1.StonePosition(5, 1)], 4 /* o */) || this;
 	    }
-	    return S;
+	    return O;
 	}(stone_1.Stone));
-	exports.S = S;
+	O.drawBlock = function (ctx, x, y) {
+	    ctx.beginPath();
+	    ctx.lineWidth = 2;
+	    ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
+	};
+	exports.O = O;
 
 
 /***/ }),
@@ -644,16 +659,22 @@
 	    };
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var stone_1 = __webpack_require__(4);
+	var stone_1 = __webpack_require__(2);
 	var stonePosition_1 = __webpack_require__(5);
-	var T = (function (_super) {
-	    __extends(T, _super);
-	    function T() {
-	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(4, 1)], 6 /* t */) || this;
+	var constants_1 = __webpack_require__(6);
+	var S = (function (_super) {
+	    __extends(S, _super);
+	    function S() {
+	        return _super.call(this, [new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(3, 1), new stonePosition_1.StonePosition(4, 1)], 5 /* s */) || this;
 	    }
-	    return T;
+	    return S;
 	}(stone_1.Stone));
-	exports.T = T;
+	S.drawBlock = function (ctx, x, y) {
+	    ctx.beginPath();
+	    ctx.lineWidth = 2;
+	    ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
+	};
+	exports.S = S;
 
 
 /***/ }),
@@ -672,8 +693,43 @@
 	    };
 	})();
 	Object.defineProperty(exports, "__esModule", { value: true });
-	var stone_1 = __webpack_require__(4);
+	var stone_1 = __webpack_require__(2);
 	var stonePosition_1 = __webpack_require__(5);
+	var constants_1 = __webpack_require__(6);
+	var T = (function (_super) {
+	    __extends(T, _super);
+	    function T() {
+	        return _super.call(this, [new stonePosition_1.StonePosition(3, 0), new stonePosition_1.StonePosition(4, 0, true), new stonePosition_1.StonePosition(5, 0), new stonePosition_1.StonePosition(4, 1)], 6 /* t */) || this;
+	    }
+	    return T;
+	}(stone_1.Stone));
+	T.drawBlock = function (ctx, x, y) {
+	    ctx.beginPath();
+	    ctx.lineWidth = 2;
+	    ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
+	};
+	exports.T = T;
+
+
+/***/ }),
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	"use strict";
+	var __extends = (this && this.__extends) || (function () {
+	    var extendStatics = Object.setPrototypeOf ||
+	        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+	        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+	    return function (d, b) {
+	        extendStatics(d, b);
+	        function __() { this.constructor = d; }
+	        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+	    };
+	})();
+	Object.defineProperty(exports, "__esModule", { value: true });
+	var stone_1 = __webpack_require__(2);
+	var stonePosition_1 = __webpack_require__(5);
+	var constants_1 = __webpack_require__(6);
 	var Z = (function (_super) {
 	    __extends(Z, _super);
 	    function Z() {
@@ -681,6 +737,11 @@
 	    }
 	    return Z;
 	}(stone_1.Stone));
+	Z.drawBlock = function (ctx, x, y) {
+	    ctx.beginPath();
+	    ctx.lineWidth = 2;
+	    ctx.fillRect(x * constants_1.Constants.BLOCK_UNIT_SIZE, y * constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE, constants_1.Constants.BLOCK_UNIT_SIZE);
+	};
 	exports.Z = Z;
 
 
