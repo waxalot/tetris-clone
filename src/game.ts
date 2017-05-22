@@ -18,7 +18,6 @@ export class Game {
     private ctx: CanvasRenderingContext2D;
 
     private board: Board;
-    private currentStone: Stone;
 
     public constructor() {
         this.canvas = <HTMLCanvasElement>document.getElementById('board');
@@ -30,8 +29,6 @@ export class Game {
         this.initBoard();
         this.initCanvas();
 
-        this.createStone();
-
         this.initGameLoop();
     }
 
@@ -39,36 +36,32 @@ export class Game {
         switch (e.keyCode) {
             case 37: {
                 // Left
-                this.moveStoneLeft(this.currentStone);
+                this.board.moveStoneLeft();
                 break;
             }
             case 38: {
                 // Up
-                this.instantDown(this.currentStone);
+                this.board.instantDown();
                 break;
             }
             case 39: {
                 // Right
-                this.moveStoneRight(this.currentStone);
+                this.board.moveStoneRight();
                 break;
             }
             case 40: {
                 // Down
-                this.moveStoneDown(this.currentStone);
+                this.board.moveStoneDown();
                 break;
             }
             case 65: {
                 // Rotate CW
-                if (this.currentStone) {
-                    this.currentStone.tryRotateCCW(this.board);
-                }
+                this.board.tryRotateCW();
                 break;
             }
             case 68: {
                 // Rotate CCW
-                if (this.currentStone) {
-                    this.currentStone.tryRotateCW(this.board);
-                }
+                this.board.tryRotateCCW();
                 break;
             }
         }
@@ -93,97 +86,6 @@ export class Game {
         //this.clear();
     }
 
-    private instantDown = (stone: Stone) => {
-        // TODO
-    }
-
-    private createStone() {
-        let newStoneType: Blocks;
-        newStoneType = Math.floor(Math.random() * 7) + 1;
-
-        switch (newStoneType) {
-            case Blocks.i: {
-                this.currentStone = new I();
-                break;
-            }
-            case Blocks.j: {
-                this.currentStone = new J();
-                break;
-            }
-            case Blocks.l: {
-                this.currentStone = new L();
-                break;
-            }
-            case Blocks.o: {
-                this.currentStone = new O();
-                break;
-            }
-            case Blocks.s: {
-                this.currentStone = new S();
-                break;
-            }
-            case Blocks.t: {
-                this.currentStone = new T();
-                break;
-            }
-            case Blocks.z: {
-                this.currentStone = new Z();
-                break;
-            }
-        }
-    }
-
-    public moveStoneLeft(stone: Stone) {
-        if (!stone) {
-            return;
-        }
-
-        // Check if the stone can be moved left
-        for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].x - 1 < 0 || this.board.doesPositionCollide(stone.positions[i].x - 1, stone.positions[i].y)) {
-                return;
-            }
-        }
-        // Move the stone left
-        for (let i = 0; i < stone.positions.length; i++) {
-            stone.positions[i].x--;
-        }
-    }
-
-    private moveStoneRight(stone: Stone) {
-        if (!stone) {
-            return;
-        }
-
-        // Check if the stone can be moved right
-        for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].x + 1 >= Constants.BOARD_WIDTH || this.board.doesPositionCollide(stone.positions[i].x + 1, stone.positions[i].y)) {
-                return;
-            }
-        }
-        // Move the stone left
-        for (let i = 0; i < stone.positions.length; i++) {
-            stone.positions[i].x++;
-        }
-    }
-
-    private moveStoneDown(stone: Stone) {
-        if (!stone) {
-            return;
-        }
-
-        // Check if the stone can be moved down
-        for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.board.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
-                this.freezeStone();
-                return;
-            }
-        }
-        // Move the stone down
-        for (let i = 0; i < stone.positions.length; i++) {
-            stone.positions[i].y++;
-        }
-    }
 
     private initBoard() {
         this.board = new Board();
@@ -216,7 +118,7 @@ export class Game {
     }
 
     private performWorldStep = () => {
-        this.moveStoneDown(this.currentStone);
+        this.board.moveStoneDown();
     }
 
     private clear = () => {
@@ -224,18 +126,9 @@ export class Game {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    private freezeStone = () => {
-        this.board.freezeStone(this.currentStone);
-        this.board.checkForFullLines();
-        this.createStone();
-    }
-
     private draw = () => {
         this.clear();
         this.board.draw(this.ctx);
-        if (this.currentStone) {
-            this.currentStone.draw(this.ctx);
-        }
     }
 
 }
