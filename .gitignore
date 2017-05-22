@@ -1,4 +1,3 @@
 node_modules
 build
-dist/vendor
-dist/index.html
+dist
