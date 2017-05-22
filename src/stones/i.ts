@@ -19,14 +19,10 @@ export class I extends Stone {
     }
 
     public rotateCW(): void {
-        if (this.lastRotationDirection === RotationDirections.undefined || this.lastRotationDirection === RotationDirections.ccw) {
-            super.rotateCW();
-        } else {
-            super.rotateCCW();
-        }
+        this.rotateCCW();
     }
 
-    public static drawBlock = (ctx: CanvasRenderingContext2D, x: number, y: number) => {
+    public drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number): void {
         ctx.beginPath();
         ctx.lineWidth = 2;
         ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);

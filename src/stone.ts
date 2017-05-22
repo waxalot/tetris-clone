@@ -4,7 +4,7 @@ import { RotationDirections } from "./rotationDirections";
 import { Constants } from "./constants";
 import { I, J, L, O, S, T, Z } from "./stones";
 
-export class Stone {
+export abstract class Stone {
 
     public positions: Array<StonePosition>;
     public stoneType: Blocks;
@@ -21,45 +21,6 @@ export class Stone {
         this.positionsCount = this.positions.length;
         this.pivotPosition = this.getPivotPosition();
         this.lastRotationDirection = RotationDirections.undefined;
-    }
-
-    public static drawBlockByType(ctx: CanvasRenderingContext2D, stoneType: Blocks, x: number, y: number) {
-        switch (stoneType) {
-            case Blocks.i: {
-                I.drawBlock(ctx, x, y);
-                break;
-            }
-            case Blocks.j: {
-                J.drawBlock(ctx, x, y);
-                break;
-            }
-            case Blocks.l: {
-                L.drawBlock(ctx, x, y);
-                break;
-            }
-            case Blocks.o: {
-                O.drawBlock(ctx, x, y);
-                break;
-            }
-            case Blocks.s: {
-                S.drawBlock(ctx, x, y);
-                break;
-            }
-            case Blocks.t: {
-                T.drawBlock(ctx, x, y);
-                break;
-            }
-            case Blocks.z: {
-                Z.drawBlock(ctx, x, y);
-                break;
-            }
-        }
-    }
-
-    public draw = (ctx: CanvasRenderingContext2D) => {
-        this.positions.forEach((position) => {
-            Stone.drawBlockByType(ctx, this.stoneType, position.x, position.y);
-        });
     }
 
     public rotateCCW(): void {
@@ -109,6 +70,15 @@ export class Stone {
 
         this.lastRotationDirection = RotationDirections.cw;
     }
+
+
+    public draw = (ctx: CanvasRenderingContext2D) => {
+        this.positions.forEach((position) => {
+            this.drawBlock(ctx, position.x, position.y);
+        });
+    }
+
+    public abstract drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number): void;
 
     private getPivotPosition(): StonePosition | null {
         let possiblePivotPositions = this.positions.filter((stonePosition: StonePosition) => {
