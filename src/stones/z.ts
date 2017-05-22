@@ -23,9 +23,12 @@ export class Z extends Stone {
     }
 
     public drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-        ctx.beginPath();
-        ctx.lineWidth = 2;
+        ctx.fillStyle = "#000000";
         ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
+        ctx.fillStyle = "#AAAAAA";
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE + 5, y * Constants.BLOCK_UNIT_SIZE + 5, Constants.BLOCK_UNIT_SIZE - 10, Constants.BLOCK_UNIT_SIZE - 10);
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE + 10, y * Constants.BLOCK_UNIT_SIZE + 10, Constants.BLOCK_UNIT_SIZE - 20, Constants.BLOCK_UNIT_SIZE - 20);
     }
 
 }
