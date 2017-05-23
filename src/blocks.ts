@@ -6,5 +6,6 @@ export const enum Blocks {
     o,
     s,
     t,
-    z
+    z,
+    gameOver
 }

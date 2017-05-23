@@ -78,7 +78,7 @@ export abstract class Stone {
         let canRotate = true;
         for (let i = 0; i < this.positionsCount; i++) {
             if (newPositions[i].x < 0 || newPositions[i].x >= Constants.BOARD_WIDTH ||
-                newPositions[i].y < 0 || newPositions[i].y >= Constants.BOARD_HEIGHT ||
+                newPositions[i].y < 0 ||
                 board.doesPositionCollide(newPositions[i].x, newPositions[i].y)) {
                 canRotate = false;
                 break;

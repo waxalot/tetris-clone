@@ -6,6 +6,9 @@ import { I, J, L, O, S, T, Z } from "./stones";
 
 export class Board {
 
+    public gameOverCallback: () => void;
+    public removeLinesCallback: (numberOfLines: number) => void;
+
     private board: number[][];
     private fullLineIndices: number[];
     private drawFullLine: boolean;
@@ -13,6 +16,7 @@ export class Board {
     private currentStone: Stone;
 
     public constructor() {
+
         // Init model
         this.board = [];
         for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
@@ -54,6 +58,10 @@ export class Board {
         if (this.fullLineIndices.length > 0) {
             this.enableFullLineBlinking(() => {
                 this.removeLines();
+                if (this.removeLinesCallback) {
+                    this.removeLinesCallback(this.fullLineIndices.length);
+                }
+                this.fullLineIndices = new Array<number>();
                 this.createStone();
             });
         } else {
@@ -96,20 +104,24 @@ export class Board {
     }
 
     public moveStoneDown() {
-        if (!this.currentStone) {
+        this.moveDown(this.currentStone);
+    }
+
+    private moveDown(stone: Stone) {
+        if (!stone) {
             return;
         }
 
         // Check if the stone can be moved down
-        for (let i = 0; i < this.currentStone.positions.length; i++) {
-            if (this.currentStone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.doesPositionCollide(this.currentStone.positions[i].x, this.currentStone.positions[i].y + 1)) {
+        for (let i = 0; i < stone.positions.length; i++) {
+            if (stone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
                 this.freezeStone();
                 return;
             }
         }
         // Move the stone down
-        for (let i = 0; i < this.currentStone.positions.length; i++) {
-            this.currentStone.positions[i].y++;
+        for (let i = 0; i < stone.positions.length; i++) {
+            stone.positions[i].y++;
         }
     }
 
@@ -121,36 +133,42 @@ export class Board {
         let newStoneType: Blocks;
         newStoneType = Math.floor(Math.random() * 7) + 1;
 
+        let newStone: Stone;
         switch (newStoneType) {
             case Blocks.i: {
-                this.currentStone = new I();
+                newStone = new I();
                 break;
             }
             case Blocks.j: {
-                this.currentStone = new J();
+                newStone = new J();
                 break;
             }
             case Blocks.l: {
-                this.currentStone = new L();
+                newStone = new L();
                 break;
             }
             case Blocks.o: {
-                this.currentStone = new O();
+                newStone = new O();
                 break;
             }
             case Blocks.s: {
-                this.currentStone = new S();
+                newStone = new S();
                 break;
             }
             case Blocks.t: {
-                this.currentStone = new T();
+                newStone = new T();
                 break;
             }
             case Blocks.z: {
-                this.currentStone = new Z();
+                newStone = new Z();
                 break;
             }
         }
+
+        this.moveDown(newStone);
+        this.currentStone = newStone;
+
+        this.checkGameOver();
     }
 
     public tryRotateCCW() {
@@ -166,7 +184,7 @@ export class Board {
     }
 
     private enableFullLineBlinking(doneCallback: () => void) {
-        let blinkCount = 10;
+        let blinkCount = 8;
         let blinkIntervalID = setInterval(() => {
             this.drawFullLine = !this.drawFullLine;
 
@@ -174,16 +192,47 @@ export class Board {
                 clearInterval(blinkIntervalID);
                 doneCallback();
             }
-        }, 200);
+        }, 150);
     }
 
     private freezeStone = () => {
+        if (!this.currentStone || !this.currentStone.positions) {
+            return;
+        }
+
         for (let i = 0; i < this.currentStone.positions.length; i++) {
             this.board[this.currentStone.positions[i].x][this.currentStone.positions[i].y] = this.currentStone.stoneType;
         }
 
         this.currentStone = null;
         this.checkForFullLines();
+    }
+
+    private checkGameOver() {
+
+        // Check if one position of the currentStone collides with the blocks on the board.
+        // If so, then the player has reached the top and the game is over.
+        let isGameOver = false;
+        for (let i = 0; i < this.currentStone.positions.length; i++) {
+            if (this.doesPositionCollide(this.currentStone.positions[i].x, this.currentStone.positions[i].y)) {
+                isGameOver = true;
+                break;
+            }
+        }
+
+        if (isGameOver) {
+
+            // Set the full board to gameover state.
+            for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
+                for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
+                    this.board[i][j] = Blocks.gameOver;
+                }
+            }
+
+            if (this.gameOverCallback) {
+                this.gameOverCallback();
+            }
+        }
     }
 
     public draw = (ctx: CanvasRenderingContext2D) => {
@@ -193,11 +242,18 @@ export class Board {
 
         for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
             for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
+
                 if (!this.drawFullLine && this.fullLineIndices.indexOf(j) !== -1) {
                     continue;
                 }
                 let stoneType: Blocks = this.getStoneTypeAt(i, j);
-                if (stoneType !== Blocks.undefined) {
+                if (stoneType === Blocks.gameOver) {
+                    ctx.fillStyle = "#676767";
+                    ctx.fillRect(i * Constants.BLOCK_UNIT_SIZE, j * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
+                    ctx.clearRect(i * Constants.BLOCK_UNIT_SIZE + 5, j * Constants.BLOCK_UNIT_SIZE + 5, Constants.BLOCK_UNIT_SIZE - 10, Constants.BLOCK_UNIT_SIZE - 10);
+                    ctx.fillStyle = "#000000";
+                    ctx.fillRect(i * Constants.BLOCK_UNIT_SIZE + 7, j * Constants.BLOCK_UNIT_SIZE + 7, Constants.BLOCK_UNIT_SIZE - 14, Constants.BLOCK_UNIT_SIZE - 14);
+                } else if (stoneType !== Blocks.undefined) {
                     let tempHelperStone = this.stoneHelpers[stoneType];
                     tempHelperStone.drawBlock(ctx, i, j);
                 }
@@ -247,7 +303,6 @@ export class Board {
             }
         }
 
-        this.fullLineIndices = new Array<number>();
         this.drawFullLine = true;
     }
 
