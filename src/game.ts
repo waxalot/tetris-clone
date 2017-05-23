@@ -26,9 +26,16 @@ export class Game {
         let gameContainer = document.getElementById('gameContainer');
         gameContainer.addEventListener("keydown", this.handleKeyDown);
 
+        this.init();
+        this.start();
+    }
+
+    private init = () => {
         this.initBoard();
         this.initCanvas();
+    }
 
+    private start = () => {
         this.initGameLoop();
     }
 
@@ -79,11 +86,11 @@ export class Game {
         this.gameLoopIntervalId = setInterval(this.run, 1000 / fps);
     }
 
-    public stop() {
-        this.levelSpeedMS = 10000000;
-        //clearInterval(this.gameLoopIntervalId);
-
-        //this.clear();
+    public reset() {
+        clearInterval(this.gameLoopIntervalId);
+        this.clear();
+        this.init();
+        this.start();
     }
 
 

@@ -52,11 +52,12 @@ export class Board {
         }
 
         if (this.fullLineIndices.length > 0) {
-
             this.enableFullLineBlinking(() => {
                 this.removeLines();
+                this.createStone();
             });
-
+        } else {
+            this.createStone();
         }
     }
 
@@ -181,8 +182,8 @@ export class Board {
             this.board[this.currentStone.positions[i].x][this.currentStone.positions[i].y] = this.currentStone.stoneType;
         }
 
+        this.currentStone = null;
         this.checkForFullLines();
-        this.createStone();
     }
 
     public draw = (ctx: CanvasRenderingContext2D) => {
