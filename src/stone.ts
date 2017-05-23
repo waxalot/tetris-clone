@@ -3,6 +3,7 @@ import { StonePosition } from "./stonePosition";
 import { RotationDirections } from "./rotationDirections";
 import { Constants } from "./constants";
 import { I, J, L, O, S, T, Z } from "./stones";
+import { Board } from "./board";
 
 export abstract class Stone {
 
@@ -23,54 +24,13 @@ export abstract class Stone {
         this.lastRotationDirection = RotationDirections.undefined;
     }
 
-    public rotateCCW(): void {
-        if (!this.positions || this.positions.length === 0 || !this.pivotPosition) {
-            return;
-        }
-
-        for (let i = 0; i < this.positionsCount; i++) {
-            // Calculate relative offset from the current position to the pivot position.
-            let vRelX = this.positions[i].x - this.pivotPosition.x;
-            let vRelY = this.positions[i].y - this.pivotPosition.y;
-
-            // Multiply the relative vector with the rotation matrix.
-            // [ 0 -1 ]
-            // [ 1  0 ]
-            let vTransformedX = vRelY * (-1);
-            let vTransformedY = vRelX;
-
-            // Now update the position with the newly calculated position info.
-            this.positions[i].x = this.pivotPosition.x + vTransformedX;
-            this.positions[i].y = this.pivotPosition.y + vTransformedY;
-        }
-
-        this.lastRotationDirection = RotationDirections.ccw;
+    public tryRotateCCW(board: Board): void {
+        this.tryRotate(RotationDirections.ccw, board);
     }
 
-    public rotateCW(): void {
-        if (!this.positions || this.positions.length === 0 || !this.pivotPosition) {
-            return;
-        }
-
-        for (let i = 0; i < this.positionsCount; i++) {
-            // Calculate relative offset from the current position to the pivot position.
-            let vRelX = this.positions[i].x - this.pivotPosition.x;
-            let vRelY = this.positions[i].y - this.pivotPosition.y;
-
-            // Multiply the relative vector with the rotation matrix.
-            // [ 0  1 ]
-            // [-1  0 ]
-            let vTransformedX = vRelY;
-            let vTransformedY = vRelX * (-1);
-
-            // Now update the position with the newly calculated position info.
-            this.positions[i].x = this.pivotPosition.x + vTransformedX;
-            this.positions[i].y = this.pivotPosition.y + vTransformedY;
-        }
-
-        this.lastRotationDirection = RotationDirections.cw;
+    public tryRotateCW(board: Board): void {
+        this.tryRotate(RotationDirections.cw, board);
     }
-
 
     public draw = (ctx: CanvasRenderingContext2D) => {
         this.positions.forEach((position) => {
@@ -79,6 +39,62 @@ export abstract class Stone {
     }
 
     public abstract drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number): void;
+
+    private tryRotate(direction: RotationDirections, board: Board): void {
+        if (!this.positions || this.positions.length === 0 || !this.pivotPosition || direction === RotationDirections.undefined) {
+            return;
+        }
+
+        let newPositions = new Array<StonePosition>(this.positionsCount);
+
+        // Calculate temporary new positions, which will be checked later for validity.
+        for (let i = 0; i < this.positionsCount; i++) {
+            // Calculate relative offset from the current position to the pivot position.
+            let vRelX = this.positions[i].x - this.pivotPosition.x;
+            let vRelY = this.positions[i].y - this.pivotPosition.y;
+
+            let vTransformedX: number;
+            let vTransformedY: number;
+            if (direction === RotationDirections.cw) {
+                // Multiply the relative vector with the rotation matrix.
+                // [ 0  1 ]
+                // [-1  0 ]
+                vTransformedX = vRelY;
+                vTransformedY = vRelX * (-1);
+            }
+            else {
+                // Multiply the relative vector with the rotation matrix.
+                // [ 0 -1 ]
+                // [ 1  0 ]
+                vTransformedX = vRelY * (-1);
+                vTransformedY = vRelX;
+            }
+
+            // Now calculate the new final position
+            newPositions[i] = new StonePosition(this.pivotPosition.x + vTransformedX, this.pivotPosition.y + vTransformedY);
+        }
+
+        // Now check if all new positions are valid positions.
+        let canRotate = true;
+        for (let i = 0; i < this.positionsCount; i++) {
+            if (newPositions[i].x < 0 || newPositions[i].x >= Constants.BOARD_WIDTH ||
+                newPositions[i].y < 0 || newPositions[i].y >= Constants.BOARD_HEIGHT ||
+                board.doesPositionCollide(newPositions[i].x, newPositions[i].y)) {
+                canRotate = false;
+                break;
+            }
+        }
+
+        // If all positions are valid, then update the old positions with the new found ones.
+        if (canRotate) {
+            for (let i = 0; i < this.positionsCount; i++) {
+                this.positions[i].x = newPositions[i].x;
+                this.positions[i].y = newPositions[i].y;
+            }
+
+            this.lastRotationDirection = RotationDirections.cw;
+        }
+    }
 
     private getPivotPosition(): StonePosition | null {
         let possiblePivotPositions = this.positions.filter((stonePosition: StonePosition) => {

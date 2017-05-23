@@ -3,6 +3,7 @@ import { Blocks } from "../blocks";
 import { StonePosition } from "../stonePosition";
 import { Constants } from "../constants";
 import { RotationDirections } from "../rotationDirections";
+import { Board } from "../board";
 
 export class Z extends Stone {
 
@@ -10,22 +11,25 @@ export class Z extends Stone {
         super([new StonePosition(3, 0), new StonePosition(4, 0, true), new StonePosition(4, 1), new StonePosition(5, 1)], Blocks.z);
     }
 
-    public rotateCCW(): void {
+    public tryRotateCCW(board: Board): void {
         if (this.lastRotationDirection === RotationDirections.undefined || this.lastRotationDirection === RotationDirections.cw) {
-            super.rotateCCW();
+            super.tryRotateCCW(board);
         } else if (this.lastRotationDirection === RotationDirections.ccw) {
-            super.rotateCW();
+            super.tryRotateCW(board);
         }
     }
 
-    public rotateCW(): void {
-        this.rotateCCW();
+    public tryRotateCW(board: Board): void {
+        this.tryRotateCCW(board);
     }
 
     public drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number): void {
-        ctx.beginPath();
-        ctx.lineWidth = 2;
+        ctx.fillStyle = "#000000";
         ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
+        ctx.fillStyle = "#AAAAAA";
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE + 5, y * Constants.BLOCK_UNIT_SIZE + 5, Constants.BLOCK_UNIT_SIZE - 10, Constants.BLOCK_UNIT_SIZE - 10);
+        ctx.fillStyle = "#444444";
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE + 10, y * Constants.BLOCK_UNIT_SIZE + 10, Constants.BLOCK_UNIT_SIZE - 20, Constants.BLOCK_UNIT_SIZE - 20);
     }
 
 }

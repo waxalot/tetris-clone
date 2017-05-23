@@ -1,8 +1,8 @@
 import { Game } from "./game";
 
-let stopBtn = document.getElementById('stop');
+let stopBtn = document.getElementById('reset');
 stopBtn.addEventListener('click', () => {
-    game.stop();
+    game.reset();
 });
 
 let game = new Game();
