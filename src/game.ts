@@ -4,11 +4,14 @@ import { Blocks } from "./blocks";
 import { I, J, L, O, S, T, Z } from "./stones";
 import { Constants } from "./constants";
 import { Board } from "./board";
+import { Key } from "./key";
 
 
 export class Game {
 
-    private static TITLE = "Tetris";
+    private static KEYBOARD_SCANNING_TIME_MS = 100;
+
+    private static PAUSE = "Pause";
     private static SCORE = "Score";
     private static LEVEL = "Level";
     private static LINES = "Lines";
@@ -30,14 +33,57 @@ export class Game {
     private board: Board;
     private boardWidth: number;
     private infoWidth: number;
+
     private isGameOver: boolean;
+    private isPaused: boolean;
+
+    private keyHelper: Key;
+    private keyboardScanningTimer: number;
 
     public constructor() {
         this.canvas = <HTMLCanvasElement>document.getElementById('board');
         this.ctx = this.canvas.getContext('2d');
 
+        this.keyHelper = new Key();
+        this.keyboardScanningTimer = Game.KEYBOARD_SCANNING_TIME_MS;
+
+
         let gameContainer = document.getElementById('gameContainer');
-        gameContainer.addEventListener("keydown", this.handleKeyDown);
+
+        gameContainer.addEventListener('keyup', (e: KeyboardEvent) => { this.keyHelper.onKeyUp(e); }, false);
+        gameContainer.addEventListener('keydown', (e: KeyboardEvent) => {
+
+            if (e.keyCode === Key.p) {
+                this.pause();
+            } else if (!this.isPaused) {
+                switch (e.keyCode) {
+                    case Key.LEFT: {
+                        this.board.moveStoneLeft();
+                        this.keyHelper.onKeyDown(e);
+                        break;
+                    }
+                    case Key.RIGHT: {
+                        this.board.moveStoneRight();
+                        this.keyHelper.onKeyDown(e);
+                        break;
+                    }
+                    case Key.a: {
+                        // Rotate CW
+                        this.board.tryRotateCW();
+                        break;
+                    }
+                    case Key.d: {
+                        // Rotate CCW
+                        this.board.tryRotateCCW();
+                        break;
+                    }
+                    default: {
+                        this.keyHelper.onKeyDown(e);
+                        break;
+                    }
+                }
+            }
+        }, false);
 
         this.init();
         this.start();
@@ -55,6 +101,10 @@ export class Game {
         this.level = 0;
         this.lines = 0;
         this.initGameLoop();
+    }
+
+    private pause = () => {
+        this.isPaused = !this.isPaused;
     }
 
     private onGameOver = () => {
@@ -108,46 +158,23 @@ export class Game {
         return result;
     }
 
-    private handleKeyDown = (e: KeyboardEvent) => {
+    private handleKeyDown = () => {
         if (this.isGameOver) {
             return;
         }
 
-        switch (e.keyCode) {
-            case 37: {
-                // Left
-                this.board.moveStoneLeft();
-                break;
-            }
-            case 38: {
-                // Up
-                this.board.instantDown();
-                break;
-            }
-            case 39: {
-                // Right
-                this.board.moveStoneRight();
-                break;
-            }
-            case 40: {
-                // Down
-                this.board.moveStoneDown();
-                break;
-            }
-            case 65: {
-                // Rotate CW
-                this.board.tryRotateCW();
-                break;
-            }
-            case 68: {
-                // Rotate CCW
-                this.board.tryRotateCCW();
-                break;
-            }
+        if (this.keyHelper.isDown(Key.UP)) {
+            this.board.instantDown();
         }
-
-        e.preventDefault();
-        e.stopPropagation();
+        if (this.keyHelper.isDown(Key.LEFT) > 200) {
+            this.board.moveStoneLeft();
+        }
+        if (this.keyHelper.isDown(Key.RIGHT) > 200) {
+            this.board.moveStoneRight();
+        }
+        if (this.keyHelper.isDown(Key.DOWN)) {
+            this.board.moveStoneDown();
+        }
     }
 
     private initGameLoop() {
@@ -227,15 +254,30 @@ export class Game {
     }
 
     private update = () => {
+
         // Calculate delta time in milliseconds
         let dt = Date.now() - this.lastUpdateTime;
-        this.tickTimer -= dt;
-        if (this.tickTimer <= 0) {
 
-            // A game step can be performed
-            this.performWorldStep();
+        if (!this.isPaused) {
+            // Keyboard input
+            this.keyboardScanningTimer -= dt;
+            if (this.keyboardScanningTimer <= 0) {
+                this.handleKeyDown();
 
-            this.tickTimer = this.levelSpeedMS;
+                this.keyboardScanningTimer = Game.KEYBOARD_SCANNING_TIME_MS;
+            }
+
+            // World tick
+            this.tickTimer -= dt;
+            if (this.tickTimer <= 0) {
+
+                if (!this.keyHelper.isDown(Key.DOWN)) {
+                    // A game step can be performed
+                    //this.performWorldStep();
+                }
+
+                this.tickTimer = this.levelSpeedMS;
+            }
         }
 
         this.lastUpdateTime = Date.now();
@@ -246,7 +288,7 @@ export class Game {
     }
 
     private clearBoard = () => {
-        this.ctx.fillStyle = "#DADADA";
+        this.ctx.fillStyle = "#324487";
         this.ctx.fillRect(0, 0, this.boardWidth, this.canvas.height);
     }
 
@@ -256,9 +298,18 @@ export class Game {
     }
 
     private draw = () => {
+
         this.clearBoard();
+        if (this.isPaused) {
+            this.ctx.fillStyle = "#FFFFFF";
+            this.ctx.font = "50px Arial";
+            this.ctx.fillText(Game.PAUSE, 80, 250);
+        }
+        else {
+            this.board.draw(this.ctx);
+        }
+
         this.clearInfo();
-        this.board.draw(this.ctx);
         this.drawText();
     }
 

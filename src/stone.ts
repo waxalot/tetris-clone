@@ -92,7 +92,13 @@ export abstract class Stone {
                 this.positions[i].y = newPositions[i].y;
             }
 
-            this.lastRotationDirection = RotationDirections.cw;
+            if (direction === RotationDirections.cw) {
+                this.lastRotationDirection = RotationDirections.cw;
+            } else if (direction === RotationDirections.ccw) {
+                this.lastRotationDirection = RotationDirections.ccw;
+            } else {
+                this.lastRotationDirection = RotationDirections.undefined;
+            }
         }
     }
 

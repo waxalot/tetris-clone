@@ -192,7 +192,7 @@ export class Board {
                 clearInterval(blinkIntervalID);
                 doneCallback();
             }
-        }, 150);
+        }, 180);
     }
 
     private freezeStone = () => {

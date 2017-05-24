@@ -12,12 +12,10 @@ export class L extends Stone {
     public drawBlock(ctx: CanvasRenderingContext2D, x: number, y: number): void {
         ctx.fillStyle = "#000000";
         ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE, y * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
-        ctx.fillStyle = "#AAAAAA";
-        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE + 5, y * Constants.BLOCK_UNIT_SIZE + 5, Constants.BLOCK_UNIT_SIZE - 10, Constants.BLOCK_UNIT_SIZE - 10);
-        ctx.beginPath();
-        ctx.fillStyle = "#DDDDDD";
-        ctx.arc((x * Constants.BLOCK_UNIT_SIZE) + Constants.BLOCK_UNIT_SIZE * 0.5, (y * Constants.BLOCK_UNIT_SIZE) + Constants.BLOCK_UNIT_SIZE * 0.5, 5, 0, 360);
-        ctx.fill();
+        ctx.fillStyle = "#fca002";
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE + Constants.STONE_BORDER_SIZE, y * Constants.BLOCK_UNIT_SIZE + Constants.STONE_BORDER_SIZE, Constants.BLOCK_UNIT_SIZE - 6, Constants.BLOCK_UNIT_SIZE - 6);
+        ctx.fillStyle = "#d84800";
+        ctx.fillRect(x * Constants.BLOCK_UNIT_SIZE + 10, y * Constants.BLOCK_UNIT_SIZE + 10, Constants.BLOCK_UNIT_SIZE - 20, Constants.BLOCK_UNIT_SIZE - 20);
     }
 
 }
