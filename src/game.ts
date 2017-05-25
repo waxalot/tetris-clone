@@ -1,3 +1,5 @@
+/// <reference path="./canvasRenderingContext2D.d.ts" />
+
 import { Stone } from "./stone";
 import { StonePosition } from "./stonePosition";
 import { Blocks } from "./blocks";
@@ -5,16 +7,17 @@ import { I, J, L, O, S, T, Z } from "./stones";
 import { Constants } from "./constants";
 import { Board } from "./board";
 import { Key } from "./key";
+import { GameStates } from "./gameStates";
+import { UIObject } from "./ui/uiObject";
+import { UIButton } from "./ui/uiButton";
+import { UILabel } from "./ui/uiLabel";
 
 
 export class Game {
 
     private static KEYBOARD_SCANNING_TIME_MS = 100;
 
-    private static PAUSE = "Pause";
-    private static SCORE = "Score";
-    private static LEVEL = "Level";
-    private static LINES = "Lines";
+    private currentGameState: GameStates;
 
     private score: number;
     private level: number;
@@ -28,7 +31,7 @@ export class Game {
     private gameLoopIntervalId: any;
 
     private canvas: HTMLCanvasElement;
-    private ctx: CanvasRenderingContext2D;
+    private ctx: CanvasExt.CanvasRenderingContext2DExt;
 
     private board: Board;
     private boardWidth: number;
@@ -40,13 +43,15 @@ export class Game {
     private keyHelper: Key;
     private keyboardScanningTimer: number;
 
+    private uiObjects: Array<UIObject>;
+
     public constructor() {
-        this.canvas = <HTMLCanvasElement>document.getElementById('board');
-        this.ctx = this.canvas.getContext('2d');
+        this.uiObjects = new Array<UIObject>();
+
+        this.initCanvas();
 
         this.keyHelper = new Key();
         this.keyboardScanningTimer = Game.KEYBOARD_SCANNING_TIME_MS;
-
 
         let gameContainer = document.getElementById('gameContainer');
 
@@ -86,21 +91,54 @@ export class Game {
         }, false);
 
         this.init();
-        this.start();
     }
 
     private init = () => {
-        this.initLevelFrames();
-        this.initBoard();
-        this.initCanvas();
+        this.initGameLoop();
+        this.initMenuUI();
+        this.showMenu();
     }
 
-    private start = () => {
+    private initMenuUI = () => {
+
+        let titleLabel = new UILabel();
+        titleLabel.text = Constants.TITLE;
+        titleLabel.font = 'Verdana';
+        titleLabel.fontSize = 60;
+        titleLabel.color = '#ffffff'
+        titleLabel.x = Constants.CANVAS_WIDTH * 0.5 - titleLabel.width * 0.5;
+        titleLabel.y = Constants.CANVAS_HEIGHT * 0.2 - titleLabel.height * 0.5;
+        this.uiObjects.push(titleLabel);
+
+        let startButton = new UIButton();
+        startButton.text = Constants.MENU_START;
+        startButton.font = 'Verdana';
+        startButton.fontSize = 40;
+        startButton.width = 200;
+        startButton.height = 40;
+        startButton.x = Constants.CANVAS_WIDTH * 0.5 - startButton.width * 0.5;
+        startButton.y = Constants.CANVAS_HEIGHT * 0.5 - startButton.height * 0.5;
+        startButton.click = this.start;
+        this.uiObjects.push(startButton);
+
+    }
+
+    private showMenu() {
+        this.currentGameState = GameStates.menu;
+    }
+
+    private start = (): void => {
+        this.currentGameState = GameStates.gameRunning;
+
+        this.initLevelFrames();
+        this.initBoard();
+
         this.isGameOver = false;
         this.score = 0;
         this.level = 0;
         this.lines = 0;
-        this.initGameLoop();
+
+        this.setLevel(this.level);
     }
 
     private pause = () => {
@@ -179,8 +217,6 @@ export class Game {
 
     private initGameLoop() {
         this.lastUpdateTime = Date.now();
-        this.setLevel(this.level);
-
         let fps = 60;
         // Start the game loop
         this.gameLoopIntervalId = setInterval(this.run, 1000 / fps);
@@ -227,25 +263,42 @@ export class Game {
 
     public reset() {
         clearInterval(this.gameLoopIntervalId);
-        this.clearBoard();
-        this.clearInfo();
         this.init();
-        this.start();
     }
 
 
     private initBoard() {
+        this.boardWidth = Constants.BOARD_WIDTH * Constants.BLOCK_UNIT_SIZE;
+        this.infoWidth = 200;
+
         this.board = new Board();
         this.board.gameOverCallback = this.onGameOver;
         this.board.removeLinesCallback = this.onRemoveLines;
     }
 
     private initCanvas() {
-        // Init Canvas
-        this.boardWidth = Constants.BOARD_WIDTH * Constants.BLOCK_UNIT_SIZE;
-        this.infoWidth = 200;
-        this.canvas.width = this.boardWidth + this.infoWidth;
-        this.canvas.height = Constants.BOARD_HEIGHT * Constants.BLOCK_UNIT_SIZE;
+        this.canvas = <HTMLCanvasElement>document.getElementById('board');
+        this.ctx = <CanvasExt.CanvasRenderingContext2DExt>this.canvas.getContext('2d');
+        this.ctx.textBaseline = 'top';
+        this.ctx.mouse = { x: 0, y: 0, clicked: false, down: false };
+
+        this.canvas.addEventListener('mousemove', (e: MouseEvent) => {
+            this.ctx.mouse.x = e.offsetX;
+            this.ctx.mouse.y = e.offsetY;
+            this.ctx.mouse.clicked = e.which === 1 && !this.ctx.mouse.down;
+            this.ctx.mouse.down = (e.which === 1);
+        });
+        this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
+            this.ctx.mouse.clicked = !this.ctx.mouse.down;
+            this.ctx.mouse.down = true;
+        });
+        this.canvas.addEventListener('mouseup', (e: MouseEvent) => {
+            this.ctx.mouse.down = false;
+            this.ctx.mouse.clicked = false;
+        });
+
+        this.canvas.width = Constants.CANVAS_WIDTH;
+        this.canvas.height = Constants.CANVAS_HEIGHT;
     }
 
     private run = () => {
@@ -258,26 +311,34 @@ export class Game {
         // Calculate delta time in milliseconds
         let dt = Date.now() - this.lastUpdateTime;
 
-        if (!this.isPaused) {
-            // Keyboard input
-            this.keyboardScanningTimer -= dt;
-            if (this.keyboardScanningTimer <= 0) {
-                this.handleKeyDown();
+        if (this.currentGameState === GameStates.menu) {
+            this.uiObjects.forEach((uiObject: UIObject) => {
+                uiObject.update(this.ctx);
+            });
+        } else if (this.currentGameState === GameStates.gameRunning) {
 
-                this.keyboardScanningTimer = Game.KEYBOARD_SCANNING_TIME_MS;
-            }
+            if (!this.isPaused) {
+                // Keyboard input
+                this.keyboardScanningTimer -= dt;
+                if (this.keyboardScanningTimer <= 0) {
+                    this.handleKeyDown();
 
-            // World tick
-            this.tickTimer -= dt;
-            if (this.tickTimer <= 0) {
-
-                if (!this.keyHelper.isDown(Key.DOWN)) {
-                    // A game step can be performed
-                    //this.performWorldStep();
+                    this.keyboardScanningTimer = Game.KEYBOARD_SCANNING_TIME_MS;
                 }
 
-                this.tickTimer = this.levelSpeedMS;
+                // World tick
+                this.tickTimer -= dt;
+                if (this.tickTimer <= 0) {
+
+                    if (!this.keyHelper.isDown(Key.DOWN)) {
+                        // A game step can be performed
+                        this.performWorldStep();
+                    }
+
+                    this.tickTimer = this.levelSpeedMS;
+                }
             }
+
         }
 
         this.lastUpdateTime = Date.now();
@@ -299,32 +360,49 @@ export class Game {
 
     private draw = () => {
 
-        this.clearBoard();
-        if (this.isPaused) {
-            this.ctx.fillStyle = "#FFFFFF";
-            this.ctx.font = "50px Arial";
-            this.ctx.fillText(Game.PAUSE, 80, 250);
-        }
-        else {
-            this.board.draw(this.ctx);
-        }
+        if (this.currentGameState === GameStates.menu) {
+            this.drawMenu();
+        } else if (this.currentGameState === GameStates.gameRunning) {
+            this.clearBoard();
+            if (this.isPaused) {
+                this.ctx.fillStyle = "#FFFFFF";
+                this.ctx.font = "50px Arial";
+                this.ctx.fillText(Constants.GAME_PAUSE, 80, 250);
+            }
+            else {
+                this.board.draw(this.ctx);
+            }
 
-        this.clearInfo();
-        this.drawText();
+            this.clearInfo();
+            this.drawText();
+        }
     }
 
     private drawText = () => {
         this.ctx.fillStyle = "#273d60";
 
         this.ctx.font = "30px Arial";
-        this.ctx.fillText(Game.SCORE, this.boardWidth + 20, 100);
+        this.ctx.fillText(Constants.GAME_SCORE, this.boardWidth + 20, 100);
         this.ctx.fillText(this.score.toString(), this.boardWidth + 20, 130);
 
-        this.ctx.fillText(Game.LEVEL, this.boardWidth + 20, 190);
+        this.ctx.fillText(Constants.GAME_LEVEL, this.boardWidth + 20, 190);
         this.ctx.fillText(this.level.toString(), this.boardWidth + 20, 220);
 
-        this.ctx.fillText(Game.LINES, this.boardWidth + 20, 280);
+        this.ctx.fillText(Constants.GAME_LINES, this.boardWidth + 20, 280);
         this.ctx.fillText(this.lines.toString(), this.boardWidth + 20, 310);
+    }
+
+    private drawMenu = () => {
+
+        // draw background
+        this.ctx.fillStyle = "#273d60";
+        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // draw all UI objects (buttons, etc...);
+        this.uiObjects.forEach((uiObject: UIObject) => {
+            uiObject.draw(this.ctx);
+        });
+
     }
 
 }
