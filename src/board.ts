@@ -103,30 +103,34 @@ export class Board {
         }
     }
 
-    public moveStoneDown() {
-        this.moveDown(this.currentStone);
+    public instantDown = () => {
+        this.moveStoneDown(true);
     }
 
-    private moveDown(stone: Stone) {
+    public moveStoneDown(instantDown: boolean = false) {
+        this.moveDown(this.currentStone, instantDown);
+    }
+
+    private moveDown(stone: Stone, instantDown: boolean = false) {
         if (!stone) {
             return;
         }
 
-        // Check if the stone can be moved down
-        for (let i = 0; i < stone.positions.length; i++) {
-            if (stone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
-                this.freezeStone();
-                return;
+        let wasFrozen = false;
+        do {
+            // Check if the stone can be moved down
+            for (let i = 0; i < stone.positions.length; i++) {
+                if (stone.positions[i].y + 1 >= Constants.BOARD_HEIGHT || this.doesPositionCollide(stone.positions[i].x, stone.positions[i].y + 1)) {
+                    this.freezeStone();
+                    wasFrozen = true;
+                    return;
+                }
             }
-        }
-        // Move the stone down
-        for (let i = 0; i < stone.positions.length; i++) {
-            stone.positions[i].y++;
-        }
-    }
-
-    public instantDown = () => {
-        console.log("instant down");
+            // Move the stone down
+            for (let i = 0; i < stone.positions.length; i++) {
+                stone.positions[i].y++;
+            }
+        } while (instantDown && !wasFrozen);
     }
 
     private createStone() {

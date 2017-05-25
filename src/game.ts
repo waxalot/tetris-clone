@@ -82,6 +82,11 @@ export class Game {
                         this.board.tryRotateCCW();
                         break;
                     }
+                    case Key.UP: {
+                        // Instant down
+                        this.board.instantDown();
+                        break;
+                    }
                     default: {
                         this.keyHelper.onKeyDown(e);
                         break;
@@ -201,9 +206,6 @@ export class Game {
             return;
         }
 
-        if (this.keyHelper.isDown(Key.UP)) {
-            this.board.instantDown();
-        }
         if (this.keyHelper.isDown(Key.LEFT) > 200) {
             this.board.moveStoneLeft();
         }
