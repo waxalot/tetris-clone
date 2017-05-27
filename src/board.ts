@@ -131,6 +131,7 @@ export class Board {
                 stone.positions[i].y++;
             }
         } while (instantDown && !wasFrozen);
+        
     }
 
     private createStone() {

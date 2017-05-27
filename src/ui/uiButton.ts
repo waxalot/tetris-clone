@@ -93,7 +93,7 @@ export class UIButton extends UIObject {
         // text position
         let textSize = ctx.measureText(this.text);
         let textX = this.x + (this.width * 0.5) - (textSize.width * 0.5);
-        let textY = this.y + (this.height * 0.5) + this.fontSize * 0.35;
+        let textY = this.y + (this.height * 0.5) - (this.fontSize * 0.6);
 
         // draw the text
         ctx.fillText(this.text, textX, textY);
