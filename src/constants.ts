@@ -10,11 +10,16 @@ export class Constants {
 
     public static TITLE = "YAT";
 
+    public static MENU_GAMETYPE = 'Game Type';
+    public static MENU_GAMETYPE_A = 'Type A';
+    public static MENU_GAMETYPE_B = 'Type B';
+
     public static MENU_START = 'Start';
 
     public static GAME_PAUSE = "Pause";
     public static GAME_SCORE = "Score";
     public static GAME_LEVEL = "Level";
     public static GAME_LINES = "Lines";
+    public static GAME_HEIGHT = "Height";
 
 }

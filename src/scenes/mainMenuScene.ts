@@ -6,6 +6,7 @@ import { Scene } from "./scene";
 import { GameScene } from "./gameScene";
 import { Engine } from "../engine/engine";
 import { GameOptions } from "../gameOptions";
+import { GameTypeMenuScene } from "./gameTypeMenuScene";
 
 export class MainMenuScene extends Scene {
 
@@ -25,8 +26,8 @@ export class MainMenuScene extends Scene {
         startButton.text = Constants.MENU_START;
         startButton.font = 'Verdana';
         startButton.fontSize = 40;
-        startButton.width = 200;
-        startButton.height = 40;
+        startButton.width = 190;
+        startButton.height = 50;
         startButton.x = Constants.CANVAS_WIDTH * 0.5 - startButton.width * 0.5;
         startButton.y = Constants.CANVAS_HEIGHT * 0.5 - startButton.height * 0.5;
         startButton.click = this.onStart;
@@ -51,10 +52,7 @@ export class MainMenuScene extends Scene {
     }
 
     private onStart = () => {
-        let gameOptions = new GameOptions();
-        gameOptions.level = 0;
-        gameOptions.showPreview = true;
-        let gameScene = new GameScene(this.canvas, this.ctx, gameOptions);
-        this.engine.loadScene(gameScene);
+        let gameTypeMenuScene = new GameTypeMenuScene(this.canvas, this.ctx);
+        this.engine.loadScene(gameTypeMenuScene);
     }
 }

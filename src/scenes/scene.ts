@@ -19,6 +19,11 @@ export abstract class Scene {
         this.canvas = canvas;
         this.ctx = ctx;
 
+        // Reset all mouse information
+        if (this.ctx && this.ctx.mouse) {
+            this.ctx.mouse.clicked = false;
+        }
+
         this.uiObjects = new Array<UIObject>();
     }
 
