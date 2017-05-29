@@ -3,11 +3,11 @@ import { Constants } from "../constants";
 import { Board } from "../board";
 import { Key } from "../key";
 import { GameOptions } from "../gameOptions";
+import { StonePosition } from "../stonePosition";
 
 export class GameScene extends Scene {
 
     private board: Board;
-    private boardWidth: number;
     private infoWidth: number;
 
     private isGameOver: boolean;
@@ -25,8 +25,17 @@ export class GameScene extends Scene {
     private keyHelper: Key;
     private keyboardScanningTimer: number;
 
+    private gameOptions: GameOptions;
+
+    private previewWidth = 140;
+    private previewHeight = 90;
+    private previewPosX: number;
+    private previewPosY: number;
+
     public constructor(canvas: HTMLCanvasElement, ctx: CanvasExt.CanvasRenderingContext2DExt, gameOptions: GameOptions) {
         super(canvas, ctx);
+
+        this.gameOptions = gameOptions;
 
         this.initBoard();
 
@@ -64,6 +73,11 @@ export class GameScene extends Scene {
                         this.board.tryRotateCCW();
                         break;
                     }
+                    case Key.m: {
+                        // Switch preview mode
+                        this.gameOptions.showPreview = !this.gameOptions.showPreview;
+                        break;
+                    }
                     case Key.UP: {
                         // Instant down
                         this.board.instantDown();
@@ -78,14 +92,14 @@ export class GameScene extends Scene {
         }, false);
 
         this.initLevelFrames();
-        this.init(gameOptions);
+        this.init();
     }
 
-    private init(gameOptions: GameOptions) {
+    private init() {
         this.score = 0;
         this.lines = 0;
 
-        this.level = gameOptions.level;
+        this.level = this.gameOptions.level;
         this.setLevel(this.level);
     }
 
@@ -132,6 +146,7 @@ export class GameScene extends Scene {
 
         this.clearInfo();
         this.drawText();
+        this.drawStonePreview();
     }
 
     private performWorldStep = () => {
@@ -232,7 +247,7 @@ export class GameScene extends Scene {
         } else {
             tempFrames = this.levelFrames[this.levelFrames.length - 1];
         }
-        
+
         this.levelSpeedMS = (1000 / 60) * tempFrames;
         this.tickTimer = this.levelSpeedMS;
     }
@@ -241,33 +256,48 @@ export class GameScene extends Scene {
         this.ctx.fillStyle = "#273d60";
 
         this.ctx.font = "30px Arial";
-        this.ctx.fillText(Constants.GAME_SCORE, this.boardWidth + 20, 100);
-        this.ctx.fillText(this.score.toString(), this.boardWidth + 20, 130);
+        this.ctx.fillText(Constants.GAME_SCORE, this.board.width + 20, 100);
+        this.ctx.fillText(this.score.toString(), this.board.width + 20, 130);
 
-        this.ctx.fillText(Constants.GAME_LEVEL, this.boardWidth + 20, 190);
-        this.ctx.fillText(this.level.toString(), this.boardWidth + 20, 220);
+        this.ctx.fillText(Constants.GAME_LEVEL, this.board.width + 20, 190);
+        this.ctx.fillText(this.level.toString(), this.board.width + 20, 220);
 
-        this.ctx.fillText(Constants.GAME_LINES, this.boardWidth + 20, 280);
-        this.ctx.fillText(this.lines.toString(), this.boardWidth + 20, 310);
+        this.ctx.fillText(Constants.GAME_LINES, this.board.width + 20, 280);
+        this.ctx.fillText(this.lines.toString(), this.board.width + 20, 310);
+    }
+
+    private drawStonePreview = () => {
+
+        this.ctx.fillStyle = "#000000";
+        this.ctx.strokeRect(this.previewPosX, this.previewPosY, this.previewWidth, this.previewHeight);
+        if (this.gameOptions.showPreview) {
+            let tempStone = this.board.getNextStone();
+            if (tempStone) {
+                let offsetPosition = new StonePosition(this.previewPosX / Constants.BLOCK_UNIT_SIZE - 2.5, this.previewPosY / Constants.BLOCK_UNIT_SIZE + 0.5);
+                tempStone.draw(this.ctx, offsetPosition);
+            }
+        }
     }
 
     private clearBoard = () => {
         this.ctx.fillStyle = "#324487";
-        this.ctx.fillRect(0, 0, this.boardWidth, this.canvas.height);
+        this.ctx.fillRect(0, 0, this.board.width, this.canvas.height);
     }
 
     private clearInfo = () => {
         this.ctx.fillStyle = "#EEEEEE";
-        this.ctx.fillRect(this.boardWidth, 0, this.infoWidth, this.canvas.height);
+        this.ctx.fillRect(this.board.width, 0, this.infoWidth, this.canvas.height);
     }
 
     private initBoard() {
-        this.boardWidth = Constants.BOARD_WIDTH * Constants.BLOCK_UNIT_SIZE;
         this.infoWidth = 200;
 
         this.board = new Board();
         this.board.gameOverCallback = this.onGameOver;
         this.board.removeLinesCallback = this.onRemoveLines;
+
+        this.previewPosX = this.board.width + this.infoWidth * 0.5 - this.previewWidth * 0.5;
+        this.previewPosY = this.board.height - this.previewHeight - 40;
     }
 
     private pause = () => {

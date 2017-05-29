@@ -9,11 +9,15 @@ export class Board {
     public gameOverCallback: () => void;
     public removeLinesCallback: (numberOfLines: number) => void;
 
+    public width: number;
+    public height: number;
+
     private board: number[][];
     private fullLineIndices: number[];
     private drawFullLine: boolean;
     private stoneHelpers: Stone[];
     private currentStone: Stone;
+    private nextStone: Stone;
 
     public constructor() {
 
@@ -26,11 +30,18 @@ export class Board {
             }
         }
 
+        this.width = Constants.BOARD_WIDTH * Constants.BLOCK_UNIT_SIZE;
+        this.height = Constants.BOARD_HEIGHT * Constants.BLOCK_UNIT_SIZE;
+
         this.fullLineIndices = new Array<number>();
         this.drawFullLine = true;
         this.initStonesMap();
 
         this.createStone();
+    }
+
+    public getNextStone(): Stone {
+        return this.nextStone;
     }
 
     public getStoneTypeAt(x: number, y: number): Blocks {
@@ -131,10 +142,10 @@ export class Board {
                 stone.positions[i].y++;
             }
         } while (instantDown && !wasFrozen);
-        
+
     }
 
-    private createStone() {
+    private createNewStone(): Stone {
         let newStoneType: Blocks;
         newStoneType = Math.floor(Math.random() * 7) + 1;
 
@@ -170,8 +181,18 @@ export class Board {
             }
         }
 
-        this.moveDown(newStone);
-        this.currentStone = newStone;
+        return newStone;
+    }
+
+    private createStone() {
+        if (!this.nextStone) {
+            this.nextStone = this.createNewStone();
+        }
+
+        this.moveDown(this.nextStone);
+        this.currentStone = this.nextStone;
+
+        this.nextStone = this.createNewStone();
 
         this.checkGameOver();
     }
@@ -240,11 +261,19 @@ export class Board {
         }
     }
 
+
+    /**
+     * Draws the board.
+     * 
+     * @memberof Board
+     */
     public draw = (ctx: CanvasRenderingContext2D) => {
+        // Draw the current falling stone
         if (this.currentStone) {
             this.currentStone.draw(ctx);
         }
 
+        // Draw all already fallen stones
         for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
             for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
 
@@ -253,12 +282,14 @@ export class Board {
                 }
                 let stoneType: Blocks = this.getStoneTypeAt(i, j);
                 if (stoneType === Blocks.gameOver) {
+                    // Draw the game over screen
                     ctx.fillStyle = "#676767";
                     ctx.fillRect(i * Constants.BLOCK_UNIT_SIZE, j * Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE, Constants.BLOCK_UNIT_SIZE);
                     ctx.clearRect(i * Constants.BLOCK_UNIT_SIZE + 5, j * Constants.BLOCK_UNIT_SIZE + 5, Constants.BLOCK_UNIT_SIZE - 10, Constants.BLOCK_UNIT_SIZE - 10);
                     ctx.fillStyle = "#000000";
                     ctx.fillRect(i * Constants.BLOCK_UNIT_SIZE + 7, j * Constants.BLOCK_UNIT_SIZE + 7, Constants.BLOCK_UNIT_SIZE - 14, Constants.BLOCK_UNIT_SIZE - 14);
                 } else if (stoneType !== Blocks.undefined) {
+                    // Draw a common stone
                     let tempHelperStone = this.stoneHelpers[stoneType];
                     tempHelperStone.drawBlock(ctx, i, j);
                 }

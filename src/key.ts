@@ -12,6 +12,7 @@ export class Key {
     public static DOWN = 40;
     public static a = 65;
     public static d = 68;
+    public static m = 77;
     public static p = 80;
 
     private pressed: any = {};
@@ -19,7 +20,7 @@ export class Key {
     public isDown = (keyCode: number): number => {
         if (this.pressed[keyCode]) {
             return Date.now() - this.pressed[keyCode];
-        }else {
+        } else {
             return 0;
         }
     }

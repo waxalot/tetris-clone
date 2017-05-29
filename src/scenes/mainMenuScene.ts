@@ -53,6 +53,7 @@ export class MainMenuScene extends Scene {
     private onStart = () => {
         let gameOptions = new GameOptions();
         gameOptions.level = 0;
+        gameOptions.showPreview = true;
         let gameScene = new GameScene(this.canvas, this.ctx, gameOptions);
         this.engine.loadScene(gameScene);
     }

@@ -32,9 +32,13 @@ export abstract class Stone {
         this.tryRotate(RotationDirections.cw, board);
     }
 
-    public draw = (ctx: CanvasRenderingContext2D) => {
+    public draw = (ctx: CanvasRenderingContext2D, offset?: StonePosition) => {
         this.positions.forEach((position) => {
-            this.drawBlock(ctx, position.x, position.y);
+            if (offset) {
+                this.drawBlock(ctx, position.x + offset.x, position.y + offset.y);
+            } else {
+                this.drawBlock(ctx, position.x, position.y);
+            }
         });
     }
 
