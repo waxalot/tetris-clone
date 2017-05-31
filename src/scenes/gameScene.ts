@@ -4,8 +4,11 @@ import { Board } from "../board";
 import { Key } from "../key";
 import { GameOptions } from "../gameOptions";
 import { StonePosition } from "../stonePosition";
+import { GameTypes } from "../gameTypes";
 
 export class GameScene extends Scene {
+
+    private gameType: GameTypes;
 
     private board: Board;
     private infoWidth: number;
@@ -16,6 +19,7 @@ export class GameScene extends Scene {
     private score: number;
     private level: number;
     private lines: number;
+    private high: number;
 
     private levelSpeedMS: number;
     private levelFrames: number[];
@@ -96,11 +100,38 @@ export class GameScene extends Scene {
     }
 
     private init() {
-        this.score = 0;
-        this.lines = 0;
+        this.gameType = this.gameOptions.gameType;
+
+        switch (this.gameType) {
+            case GameTypes.A: {
+                this.initTypeA();
+                break;
+            }
+            case GameTypes.B: {
+                this.initTypeB();
+                break;
+            }
+        }
 
         this.level = this.gameOptions.level;
         this.setLevel(this.level);
+    }
+
+    private initTypeA() {
+        this.score = 0;
+        this.lines = 0;
+    }
+
+    private initTypeB() {
+        this.lines = 25;
+        this.high = this.gameOptions.height;
+
+        // Create height
+        this.initHeight(this.high);
+    }
+
+    private initHeight(height: number) {
+
     }
 
     public update = (dt: number) => {
@@ -158,14 +189,27 @@ export class GameScene extends Scene {
     }
 
     private onRemoveLines = (numberOfLines: number) => {
-        this.lines += numberOfLines;
+        switch (this.gameType) {
+            case GameTypes.A: {
+                this.lines += numberOfLines;
 
-        let newLevel = Math.floor(this.lines / 10);
-        if (newLevel > this.level) {
-            this.increaseLevel();
+                let newLevel = Math.floor(this.lines / 10);
+                if (newLevel > this.level) {
+                    this.increaseLevel();
+                }
+
+                this.score += this.getScore(numberOfLines);
+
+                break;
+            }
+            case GameTypes.B: {
+                this.lines -= numberOfLines;
+                if (this.lines < 0) {
+                    this.lines = 0;
+                }
+                break;
+            }
         }
-
-        this.score += this.getScore(numberOfLines);
     }
 
     private increaseLevel() {
@@ -252,12 +296,27 @@ export class GameScene extends Scene {
         this.tickTimer = this.levelSpeedMS;
     }
 
+    private setHeight(height: number): void {
+
+    }
+
     private drawText = () => {
         this.ctx.fillStyle = "#273d60";
 
-        this.ctx.font = "30px Arial";
-        this.ctx.fillText(Constants.GAME_SCORE, this.board.width + 20, 100);
-        this.ctx.fillText(this.score.toString(), this.board.width + 20, 130);
+        switch (this.gameType) {
+            case GameTypes.A: {
+                this.ctx.font = "30px Arial";
+                this.ctx.fillText(Constants.GAME_SCORE, this.board.width + 20, 100);
+                this.ctx.fillText(this.score.toString(), this.board.width + 20, 130);
+                break;
+            }
+            case GameTypes.B: {
+                this.ctx.font = "30px Arial";
+                this.ctx.fillText(Constants.GAME_HEIGHT, this.board.width + 20, 100);
+                this.ctx.fillText(this.gameOptions.height.toString(), this.board.width + 20, 130);
+                break;
+            }
+        }
 
         this.ctx.fillText(Constants.GAME_LEVEL, this.board.width + 20, 190);
         this.ctx.fillText(this.level.toString(), this.board.width + 20, 220);
@@ -292,7 +351,7 @@ export class GameScene extends Scene {
     private initBoard() {
         this.infoWidth = 200;
 
-        this.board = new Board();
+        this.board = new Board(this.gameOptions);
         this.board.gameOverCallback = this.onGameOver;
         this.board.removeLinesCallback = this.onRemoveLines;
 

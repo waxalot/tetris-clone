@@ -2,6 +2,8 @@ import { Constants } from "./constants";
 import { Blocks } from "./blocks";
 import { Stone } from "./stone";
 import { I, J, L, O, S, T, Z } from "./stones";
+import { GameTypes } from "./gameTypes";
+import { GameOptions } from "./gameOptions";
 
 
 export class Board {
@@ -19,14 +21,21 @@ export class Board {
     private currentStone: Stone;
     private nextStone: Stone;
 
-    public constructor() {
+    private gameOptions: GameOptions;
+
+    public constructor(gameOptions: GameOptions) {
+
+        this.gameOptions = gameOptions;
 
         // Init model
-        this.board = [];
-        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
-            this.board[i] = [];
-            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
-                this.board[i][j] = Blocks.undefined;
+        switch (this.gameOptions.gameType) {
+            case GameTypes.A: {
+                this.initModelTypeA();
+                break;
+            }
+            case GameTypes.B: {
+                this.initModelTypeB();
+                break;
             }
         }
 
@@ -38,6 +47,34 @@ export class Board {
         this.initStonesMap();
 
         this.createStone();
+    }
+
+    private initModelTypeA() {
+        this.board = [];
+        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
+            this.board[i] = [];
+            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
+                this.board[i][j] = Blocks.undefined;
+            }
+        }
+
+    }
+
+    private initModelTypeB() {
+        let rowsToFillStartIndex = Constants.BOARD_HEIGHT - this.gameOptions.height * 2;
+
+        this.board = [];
+        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
+            this.board[i] = [];
+            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
+                if (j >= rowsToFillStartIndex) {
+                    this.board[i][j] = Math.floor(Math.random() * 7);
+                }
+                else {
+                    this.board[i][j] = Blocks.undefined;
+                }
+            }
+        }
     }
 
     public getNextStone(): Stone {
