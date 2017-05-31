@@ -14,7 +14,7 @@ export abstract class Scene {
     protected canvas: HTMLCanvasElement;
     protected ctx: CanvasExt.CanvasRenderingContext2DExt;
     protected uiObjects: Array<UIObject>;
-
+   
     public constructor(canvas: HTMLCanvasElement, ctx: CanvasExt.CanvasRenderingContext2DExt) {
         this.canvas = canvas;
         this.ctx = ctx;

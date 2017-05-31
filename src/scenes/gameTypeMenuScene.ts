@@ -9,6 +9,7 @@ import { GameOptions } from "../gameOptions";
 import { GameTypes } from "../gameTypes";
 import { GameTypeAMenuScene } from "./gameTypeAMenuScene";
 import { GameTypeBMenuScene } from "./gameTypeBMenuScene";
+import { MainMenuScene } from "./mainMenuScene";
 
 export class GameTypeMenuScene extends Scene {
 
@@ -45,6 +46,26 @@ export class GameTypeMenuScene extends Scene {
         typeBButton.y = Constants.CANVAS_HEIGHT * 0.5 - typeBButton.height * 0.5;
         typeBButton.click = this.onStartTypeB;
         this.uiObjects.push(typeBButton);
+
+        this.createNavigationButtons();
+    }
+
+    private createNavigationButtons() {
+        // Back button
+        let backButton = new UIButton();
+        backButton.text = Constants.MENU_BACK;
+        backButton.backgroundColor = '#bef441';
+        backButton.font = 'Verdana';
+        backButton.fontSize = 40;
+        backButton.width = 170;
+        backButton.height = 50;
+        backButton.x = Constants.CANVAS_WIDTH * 0.19 - backButton.width * 0.5;
+        backButton.y = Constants.CANVAS_HEIGHT * 0.88;
+        backButton.click = () => {
+            let mainMenuScene = new MainMenuScene(this.canvas, this.ctx);
+            this.engine.loadScene(mainMenuScene);
+        }
+        this.uiObjects.push(backButton);
     }
 
     /**

@@ -10,6 +10,8 @@ export abstract class UIObject {
     public hoverColor: string;
     public backgroundColor: string;
     public hoverBackgroundColor: string;
+    public borderColor: string;
+    public borderSize: number;
 
     public constructor() {
         this.x = 0;
@@ -19,9 +21,11 @@ export abstract class UIObject {
         this.hovered = false;
         this.clicked = false;
         this.backgroundColor = '#ffffff';
-        this.hoverBackgroundColor = '#555555';
+        this.hoverBackgroundColor = '#28912a';
         this.color = '#000000'
-        this.hoverColor = '#ffffff';
+        this.hoverColor = '#000000';
+        this.borderSize = 0;
+        this.borderColor = '#000000';
     }
 
     public intersects = (obj: UIObject, mouse: CanvasExt.CanvasMouse) => {

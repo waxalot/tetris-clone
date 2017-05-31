@@ -22,16 +22,22 @@ export class MainMenuScene extends Scene {
         titleLabel.y = Constants.CANVAS_HEIGHT * 0.2 - titleLabel.height * 0.5;
         this.uiObjects.push(titleLabel);
 
-        let startButton = new UIButton();
-        startButton.text = Constants.MENU_START;
-        startButton.font = 'Verdana';
-        startButton.fontSize = 40;
-        startButton.width = 190;
-        startButton.height = 50;
-        startButton.x = Constants.CANVAS_WIDTH * 0.5 - startButton.width * 0.5;
-        startButton.y = Constants.CANVAS_HEIGHT * 0.5 - startButton.height * 0.5;
-        startButton.click = this.onStart;
-        this.uiObjects.push(startButton);
+        this.createNavigationButtons();
+    }
+
+    private createNavigationButtons() {
+        // Start button
+        let start1PlayerButton = new UIButton();
+        start1PlayerButton.backgroundColor = '#bef441';
+        start1PlayerButton.text = Constants.MENU_1PLAYER;
+        start1PlayerButton.font = 'Verdana';
+        start1PlayerButton.fontSize = 40;
+        start1PlayerButton.width = 180;
+        start1PlayerButton.height = 50;
+        start1PlayerButton.x = Constants.CANVAS_WIDTH * 0.5 - start1PlayerButton.width * 0.5;
+        start1PlayerButton.y = Constants.CANVAS_HEIGHT * 0.5 - start1PlayerButton.height * 0.5;
+        start1PlayerButton.click = this.onStart1Player;
+        this.uiObjects.push(start1PlayerButton);
     }
 
     /**
@@ -51,7 +57,7 @@ export class MainMenuScene extends Scene {
         });
     }
 
-    private onStart = () => {
+    private onStart1Player = () => {
         let gameTypeMenuScene = new GameTypeMenuScene(this.canvas, this.ctx);
         this.engine.loadScene(gameTypeMenuScene);
     }

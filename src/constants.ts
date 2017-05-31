@@ -14,7 +14,9 @@ export class Constants {
     public static MENU_GAMETYPE_A = 'Type A';
     public static MENU_GAMETYPE_B = 'Type B';
 
-    public static MENU_START = 'Start';
+    public static MENU_1PLAYER = '1 Player';
+    public static MENU_PLAY = 'Play';
+    public static MENU_BACK = 'Back';
 
     public static GAME_PAUSE = "Pause";
     public static GAME_SCORE = "Score";

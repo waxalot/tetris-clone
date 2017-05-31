@@ -70,6 +70,13 @@ export class UIButton extends UIObject {
      * @memberof UIButton
      */
     public draw(ctx: CanvasExt.CanvasRenderingContext2DExt): void {
+
+        // Draw border
+        if (this.borderSize > 0) {
+            ctx.fillStyle = this.borderColor;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+
         // set fill color
         if (this.hovered) {
             ctx.fillStyle = this.hoverBackgroundColor;
@@ -78,7 +85,7 @@ export class UIButton extends UIObject {
         }
 
         // draw button
-        ctx.fillRect(this.x, this.y, this.width, this.height);
+        ctx.fillRect(this.x + this.borderSize, this.y + this.borderSize, this.width - this.borderSize * 2, this.height - this.borderSize * 2);
 
         // text options
         let fontSize = this.fontSize;

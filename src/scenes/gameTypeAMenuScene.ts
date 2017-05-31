@@ -7,6 +7,8 @@ import { GameScene } from "./gameScene";
 import { Engine } from "../engine/engine";
 import { GameOptions } from "../gameOptions";
 import { GameTypes } from "../gameTypes";
+import { MainMenuScene } from "./mainMenuScene";
+import { GameTypeMenuScene } from "./gameTypeMenuScene";
 
 export class GameTypeAMenuScene extends Scene {
 
@@ -39,9 +41,30 @@ export class GameTypeAMenuScene extends Scene {
                 rowIndex++;
                 colIndex = 0;
             }
-            this.createLevelButton(i, Constants.CANVAS_WIDTH * (0.27 + colIndex * 0.1), Constants.CANVAS_HEIGHT * (0.55 + rowIndex * 0.1));
+            this.createLevelButton(i, Constants.CANVAS_WIDTH * (0.27 + colIndex * 0.1), Constants.CANVAS_HEIGHT * (0.5 + rowIndex * 0.1));
             colIndex++;
         }
+
+        // Create navigation buttons
+        this.createNavigationButtons();
+    }
+
+    private createNavigationButtons() {
+        // Back button
+        let backButton = new UIButton();
+        backButton.text = Constants.MENU_BACK;
+        backButton.backgroundColor = '#bef441';
+        backButton.font = 'Verdana';
+        backButton.fontSize = 40;
+        backButton.width = 170;
+        backButton.height = 50;
+        backButton.x = Constants.CANVAS_WIDTH * 0.19 - backButton.width * 0.5;
+        backButton.y = Constants.CANVAS_HEIGHT * 0.88;
+        backButton.click = () => {
+            let gameTypeMenuScene = new GameTypeMenuScene(this.canvas, this.ctx);
+            this.engine.loadScene(gameTypeMenuScene);
+        }
+        this.uiObjects.push(backButton);
     }
 
     private createLevelButton(level: number, x: number, y: number) {
