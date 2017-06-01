@@ -64,10 +64,23 @@ export class Board {
         let rowsToFillStartIndex = Constants.BOARD_HEIGHT - this.gameOptions.height * 2;
 
         this.board = [];
-        for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
-            this.board[i] = [];
-            for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
-                if (j >= rowsToFillStartIndex) {
+        for (let j = 0; j < Constants.BOARD_HEIGHT; j++) {
+            // Per row
+
+            // Define the random free block indices for the current row.
+            let numberOfFreeBlocks = Math.floor(Math.random() * 3) + 1;
+            let freeColumnIndices = [];
+            for(let k = 0; k < numberOfFreeBlocks; k++) {
+                freeColumnIndices[k] = Math.floor(Math.random() * (Constants.BOARD_WIDTH - 1));
+            }
+
+            for (let i = 0; i < Constants.BOARD_WIDTH; i++) {
+                // Per column
+                if (!this.board[i]) {
+                    this.board[i] = [];
+                }
+
+                if (j >= rowsToFillStartIndex && freeColumnIndices.indexOf(i) === -1) {
                     this.board[i][j] = Math.floor(Math.random() * 7);
                 }
                 else {
