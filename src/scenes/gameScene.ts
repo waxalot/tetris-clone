@@ -25,6 +25,9 @@ export class GameScene extends Scene {
     private levelFrames: number[];
     private tickTimer: number;
 
+    private readonly AFTER_START_DELAY_TIME_MS = 1000;
+    private afterStartDelayTickTimer: number;
+
     private readonly KEYBOARD_SCANNING_TIME_MS = 100;
     private keyHelper: Key;
     private keyboardScanningTimer: number;
@@ -113,6 +116,8 @@ export class GameScene extends Scene {
             }
         }
 
+        this.afterStartDelayTickTimer = this.AFTER_START_DELAY_TIME_MS;
+
         this.level = this.gameOptions.level;
         this.setLevel(this.level);
     }
@@ -125,13 +130,6 @@ export class GameScene extends Scene {
     private initTypeB() {
         this.lines = 25;
         this.high = this.gameOptions.height;
-
-        // Create height
-        this.initHeight(this.high);
-    }
-
-    private initHeight(height: number) {
-
     }
 
     public update = (dt: number) => {
@@ -149,16 +147,20 @@ export class GameScene extends Scene {
                 this.keyboardScanningTimer = this.KEYBOARD_SCANNING_TIME_MS;
             }
 
-            // World tick
-            this.tickTimer -= dt;
-            if (this.tickTimer <= 0) {
+            if (this.afterStartDelayTickTimer > 0) {
+                this.afterStartDelayTickTimer -= dt;
+            } else {
+                // World tick
+                this.tickTimer -= dt;
+                if (this.tickTimer <= 0) {
 
-                if (!this.keyHelper.isDown(Key.DOWN)) {
-                    // A game step can be performed
-                    this.performWorldStep();
+                    if (!this.keyHelper.isDown(Key.DOWN)) {
+                        // A game step can be performed
+                        this.performWorldStep();
+                    }
+
+                    this.tickTimer = this.levelSpeedMS;
                 }
-
-                this.tickTimer = this.levelSpeedMS;
             }
         }
 
@@ -189,6 +191,7 @@ export class GameScene extends Scene {
     }
 
     private onRemoveLines = (numberOfLines: number) => {
+
         switch (this.gameType) {
             case GameTypes.A: {
                 this.lines += numberOfLines;
@@ -294,10 +297,6 @@ export class GameScene extends Scene {
 
         this.levelSpeedMS = (1000 / 60) * tempFrames;
         this.tickTimer = this.levelSpeedMS;
-    }
-
-    private setHeight(height: number): void {
-
     }
 
     private drawText = () => {
